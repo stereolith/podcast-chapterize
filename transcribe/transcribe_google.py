@@ -13,7 +13,7 @@ def transcribeAudioFromUrl(url):
     wget.download(url, out='transcribe/download')
     rawPath = os.path.join('transcribe/download', filename)
     print('\ndownloaded file {0}'.format(rawPath))
-    path = toOgg(rawPath)
+    path = toWav(rawPath)
     return uploadToGoogleCloud(path)
 
 def uploadToGoogleCloud(filepath):
@@ -26,7 +26,7 @@ def uploadToGoogleCloud(filepath):
 
     return transcribeBlob('gs://' + bucket_name + '/' + os.path.basename(filepath))
 
-def toOgg(path):
+def toWav(path):
     filename = os.path.splitext(os.path.basename(path))[0]
     dest = os.path.join('transcribe/download', filename) + '.wav'
     cmd = 'ffmpeg -i {0} -vn -ac 1 -acodec pcm_s16le -ar 16000 {1}'.format(path, dest)
