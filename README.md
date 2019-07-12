@@ -2,8 +2,34 @@
 
 This project aims to automatically provide longform audio podcast episodes with chapter markers. This is achieved with statistical natrual language processing algorithms that try to subdivide transcribed podcast episodes into topically cohesive parts.
 
+[work in progress]
 
 ## Journal
+
+### 12.07.2019
+
+* for kmeans cluster switched to sklearn workflow (scikit learn, better docs and more accessible)
+* improved approach 3 (kmeans clustering) with TF-IDF vectorizer:
+  * with a section length of 30s, groups of clusters can be made out easily:
+    (Podcast "Hello Internet", Episode #125)
+    ```
+    Section from min 0.67 assigned to cluster 11
+    Section from min 1.37 assigned to cluster 10
+    Section from min 2.05 assigned to cluster 10
+    Section from min 2.73 assigned to cluster 10
+    Section from min 3.4 assigned to cluster 10
+    Section from min 4.07 assigned to cluster 7
+    Section from min 4.75 assigned to cluster 7
+    Section from min 5.42 assigned to cluster 7
+    Section from min 6.12 assigned to cluster 7
+    Section from min 6.8 assigned to cluster 7
+    Section from min 7.47 assigned to cluster 7
+    Section from min 8.15 assigned to cluster 7
+    Section from min 8.82 assigned to cluster 1
+    Section from min 9.5 assigned to cluster 11
+    Section from min 10.17 assigned to cluster 2
+    ```
+* Similar to approach 1, the number of clusters needs to be determined beforehand. Making this approach work with many different podcasts and episode lengths could be difficult, maybe a variable number of clusters depending on the length of the podcast episode could be a solution.
 
 ### until 12.07.2019
 

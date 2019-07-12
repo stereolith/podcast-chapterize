@@ -1,13 +1,13 @@
 import nltk
 from nltk.stem import WordNetLemmatizer 
-from nltk.corpus import stopwords
-nltk.download('stopwords')
-from nltk.cluster import KMeansClusterer
+
+from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 import json
 
-def k_cluster(transcriptFile, k=10):
+def k_cluster(transcriptFile, k=15):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -25,7 +25,7 @@ def k_cluster(transcriptFile, k=10):
         seconds = word['startTime']
         secCount += seconds - lastSec
         currentSection += word['word'] + ' '
-        if secCount > 20:
+        if secCount > 40:
             sections.append({'transcript': currentSection, 'time': seconds})
             secCount = 0
             currentSection= ''
@@ -35,23 +35,21 @@ def k_cluster(transcriptFile, k=10):
     # lowercase, lemmatize, remove stopwords
     processed = []
 
-    stopWords = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
     for section in sections:
         processedSection = ''
         for token in nltk.word_tokenize(section['transcript']):
-            if token not in stopWords:
-                processedSection += ' ' + lemmatizer.lemmatize(token).lower()
+            processedSection += ' ' + lemmatizer.lemmatize(token).lower()
         processed.append(processedSection)
 
-    # one-hot vecorizer
-    vectorizer = CountVectorizer(binary=True)
-    freqs = vectorizer.fit_transform(processed)
-    oneHot = [freq.toarray()[0] for freq in freqs]
+    # create vectorizer, incl. removal of stopwords
+    vectorizer = TfidfVectorizer(max_df=0.5, min_df=2, stop_words='english')
+    X = vectorizer.fit_transform(processed)
 
-    model = KMeansClusterer(k, distance=nltk.cluster.util.cosine_distance, avoid_empty_clusters=True)
-    clusters = model.cluster(oneHot, assign_clusters=True)
+    km = KMeans(n_clusters=k, init='k-means++', max_iter=100, n_init=1)
+    km.fit(X)
 
-    for idx, cluster in enumerate(clusters):
-        print("Start time: {} assigned to cluster {}.".format( str(int(sections[idx]['time']) / 60)[:6], cluster))
-            
+    for i, label in enumerate(km.labels_.tolist()):
+        print("Section from min {} assigned to cluster {}".format(str(round(int(sections[i]['time']) / 60, 2)), label))
+
+    return km
