@@ -43,7 +43,7 @@ def k_cluster(transcriptFile, k=15):
         processed.append(processedSection)
 
     # create vectorizer, incl. removal of stopwords
-    vectorizer = TfidfVectorizer(max_df=0.5, min_df=2, stop_words='english')
+    vectorizer = TfidfVectorizer(max_df=0.5, min_df=3, stop_words='english')
     X = vectorizer.fit_transform(processed)
 
     km = KMeans(n_clusters=k, init='k-means++', max_iter=100, n_init=1)

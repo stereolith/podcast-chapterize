@@ -6,6 +6,14 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 14.07.2019
+* Testing of [TextTiling](https://www.aclweb.org/anthology/J97-1003) algorithm:
+    * The TextTiling algorithm is unsuitable for this problem because it needs the input to be structured into paragraphs, as the algorithm groups together paragraph units into multiparagraph sections that are topically coherent. Output of the text to speech api can not infer this text structure and is more comparable to a text stream.
+    * In addition, 'TextTiling is geared towards expository text; that is, text that explicitly explains or teaches, as opposed to, say, literary texts, since expository text is better suited to the main target applications of information retrieval and summarization.' (Hearst 1997, 35)
+    * Marti A. Hearst, Multi-Paragraph Segmentation of Expository Text. Proceedings of the 32nd Meeting of the Association for Computational Linguistics, Los Cruces, NM, June, 1994. 
+* Added topic modeling visualization of LDA model with [pyLDAvis](https://github.com/bmabey/pyLDAvis) module, outputs html file visual.html
+* [WIP] matplotlib visualization of (lda) topic distribution over time in a (discontinuous) horizontal bar chart with **x: time**; **y: topic (categorical)**
+
 ### 12.07.2019
 
 * for kmeans cluster switched to sklearn workflow (scikit learn, better docs and more accessible)

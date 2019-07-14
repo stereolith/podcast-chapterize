@@ -5,10 +5,12 @@ nltk.download('stopwords')
 
 import gensim
 from gensim import corpora, models
+import pyLDAvis
+import pyLDAvis.gensim
 
 import json
 
-def lda_json(transcriptFile):
+def lda_json(transcriptFile, noTopics=10):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -26,7 +28,7 @@ def lda_json(transcriptFile):
         seconds = word['startTime']
         secCount += seconds - lastSec
         currentSection += word['word'] + ' '
-        if secCount > 20:
+        if secCount > 30:
             sections.append({'transcript': currentSection, 'time': seconds})
             secCount = 0
             currentSection= ''
@@ -47,7 +49,7 @@ def lda_json(transcriptFile):
 
     # create dictionary (occurance of words per section)
     dictionary = gensim.corpora.Dictionary(processed)
-    dictionary.filter_extremes(no_below=5, no_above=0.5, keep_n=100000)
+    dictionary.filter_extremes(no_below=2, no_above=0.5)
     print("dictionary generated")
 
     #create bag of words-corpus 
@@ -57,12 +59,41 @@ def lda_json(transcriptFile):
     corpus_tfidf = tfidf[bow_corpus]
 
     # create model
-    lda_model = gensim.models.LdaMulticore(corpus_tfidf, num_topics=12, id2word=dictionary, passes=2, workers=2)
+    lda_model = gensim.models.LdaMulticore(corpus_tfidf, num_topics=noTopics, id2word=dictionary, passes=2, workers=2)
     print("model created")
 
     for idx, topic in lda_model.print_topics(-1):
         print('Topic: {} \nWords: {}'.format(idx, topic))
 
+    document_topics_over_time = [[] for x in range(noTopics)]
     for i, val in enumerate(corpus_tfidf):
         print(str(int(sections[i]['time']) / 60) + " start min\n   ", end='')
-        print(lda_model.get_document_topics(val, minimum_probability=0.1))
+        topics = lda_model.get_document_topics(val, minimum_probability=0.1)
+        for topic in topics:
+            document_topics_over_time[topic[0]].append(i)
+    
+    print(document_topics_over_time)
+
+
+    visual = pyLDAvis.gensim.prepare(lda_model, corpus_tfidf, dictionary)
+    pyLDAvis.save_html(visual, 'visual.html')
+    #visualize(document_topics_over_time)
+    return lda_model
+
+def visualize(topics_t):
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    topicLabels = ['Topic' + str(i) for i, x in range(noTopics)]
+
+    ax.invert_yaxis()
+    #ax.xaxis.set_visible(False)
+    ax.set_xlim(0, np.sum(data, axis=1).max())
+
+    for idx, label in topicLabels:
+        starts = topics_t[:, i]
+        ax.barh(labels, 1, left=starts, height=0.5, label=colname, color=color)
+        xcenters = starts + widths / 2
+
+    fig, ax = plt.subplots(figsize=(9.2, 5))
+    #labels = 

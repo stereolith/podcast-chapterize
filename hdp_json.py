@@ -49,7 +49,7 @@ def hdp_json(transcriptFile):
 
     # create dictionary (occurance of words per section)
     dictionary = gensim.corpora.Dictionary(processed)
-    dictionary.filter_extremes(no_below=5, no_above=0.3, keep_n=100000)
+    dictionary.filter_extremes(no_below=5, no_above=0.3)
     print("dictionary generated")
 
     #create bag of words-corpus 
