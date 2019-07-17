@@ -8,9 +8,12 @@ from gensim import corpora, models
 import pyLDAvis
 import pyLDAvis.gensim
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 import json
 
-def lda_json(transcriptFile, noTopics=10):
+def lda_json(transcriptFile, noTopics=10, windowSize=30):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -28,7 +31,7 @@ def lda_json(transcriptFile, noTopics=10):
         seconds = word['startTime']
         secCount += seconds - lastSec
         currentSection += word['word'] + ' '
-        if secCount > 30:
+        if secCount > windowSize:
             sections.append({'transcript': currentSection, 'time': seconds})
             secCount = 0
             currentSection= ''
@@ -59,7 +62,7 @@ def lda_json(transcriptFile, noTopics=10):
     corpus_tfidf = tfidf[bow_corpus]
 
     # create model
-    lda_model = gensim.models.LdaMulticore(corpus_tfidf, num_topics=noTopics, id2word=dictionary, passes=2, workers=2)
+    lda_model = gensim.models.LdaMulticore(corpus_tfidf, num_topics=noTopics, id2word=dictionary, passes=3, workers=2)
     print("model created")
 
     for idx, topic in lda_model.print_topics(-1):
@@ -69,31 +72,31 @@ def lda_json(transcriptFile, noTopics=10):
     for i, val in enumerate(corpus_tfidf):
         print(str(int(sections[i]['time']) / 60) + " start min\n   ", end='')
         topics = lda_model.get_document_topics(val, minimum_probability=0.1)
+        print(topics)
         for topic in topics:
             document_topics_over_time[topic[0]].append(i)
-    
-    print(document_topics_over_time)
-
 
     visual = pyLDAvis.gensim.prepare(lda_model, corpus_tfidf, dictionary)
     pyLDAvis.save_html(visual, 'visual.html')
-    #visualize(document_topics_over_time)
+    visualize(document_topics_over_time, windowSize)
     return lda_model
 
-def visualize(topics_t):
-    import numpy as np
-    import matplotlib.pyplot as plt
+def visualize(topics_t, windowSize):
+    fig, ax = plt.subplots()
 
-    topicLabels = ['Topic' + str(i) for i, x in range(noTopics)]
+    topicLabels = ['Topic ' + str(i) for i in range(len(topics_t))]
 
+    y_pos = np.arange(len(topics_t))
+
+    ax.set_yticks(y_pos)
     ax.invert_yaxis()
-    #ax.xaxis.set_visible(False)
-    ax.set_xlim(0, np.sum(data, axis=1).max())
+    for i in range(len(topics_t)):
+        xranges = [(t*(windowSize/60), (windowSize/60)) for t in topics_t[i]]
+        ax.broken_barh(xranges, (i-0.3, .6), facecolors='tab:blue')
 
-    for idx, label in topicLabels:
-        starts = topics_t[:, i]
-        ax.barh(labels, 1, left=starts, height=0.5, label=colname, color=color)
-        xcenters = starts + widths / 2
-
-    fig, ax = plt.subplots(figsize=(9.2, 5))
-    #labels = 
+    ax.set_yticklabels(topicLabels)
+    ax.set_xlabel('Time in minutes')
+    ax.set_title('Topic distribution over time')
+    ax.grid(True)
+    plt.margins(0.02, 0.05)
+    plt.show()

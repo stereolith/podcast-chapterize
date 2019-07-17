@@ -6,6 +6,15 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 17.07.2019
+* Add plot of topic distribution over time with matplotlib for lda approach (ToDo: add graph to hdp and k-means approach)
+  ![topic distribution over time](doc_files/topicsovertime.png)
+* For segmentaiton, the LDA approach yields not much useful results, as consecutive transcript segments often are not labeled with the same topic, so grouping segments together is difficult. Reasons for this could be:
+  * the arbritary chosen segmentation (i.e. 30s segments) of the transcript produces very fuzzy segments that may or may not contain topic-related tokens and are in itself not contained entities
+  * hyperparameters need to be tuned: segment width, number of topics, passes through data
+    * could try out automated parameter tuning, maybe optimize no of topics with perplexity value (https://www.mathworks.com/help/textanalytics/ug/choose-number-of-topics-for-LDA-model.html)
+  * **differnent approach: topic modeling after (k-means) clustering for labeling segments?**
+
 ### 14.07.2019
 * Testing of [TextTiling](https://www.aclweb.org/anthology/J97-1003) algorithm:
     * The TextTiling algorithm is unsuitable for this problem because it needs the input to be structured into paragraphs, as the algorithm groups together paragraph units into multiparagraph sections that are topically coherent. Output of the text to speech api can not infer this text structure and is more comparable to a text stream.

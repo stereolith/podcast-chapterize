@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 import json
 
-def k_cluster(transcriptFile, k=15):
+def k_cluster(transcriptFile, k=15, windowSize=40):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -25,7 +25,7 @@ def k_cluster(transcriptFile, k=15):
         seconds = word['startTime']
         secCount += seconds - lastSec
         currentSection += word['word'] + ' '
-        if secCount > 40:
+        if secCount > windowSize:
             sections.append({'transcript': currentSection, 'time': seconds})
             secCount = 0
             currentSection= ''
