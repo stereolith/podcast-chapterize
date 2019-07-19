@@ -19,31 +19,32 @@ def hdp_json(transcriptFile):
         return
 
     # split transcript into 20 second long documents
-    sections = []
-    currentSection = ''  
-    lastSec = 0
-    secCount = 0
+    #sections = []
+    #currentSection = ''  
+    #lastSec = 0
+    #secCount = 0
 
-    for word in transcript:
-        seconds = word['startTime']
-        secCount += seconds - lastSec
-        currentSection += word['word'] + ' '
-        if secCount > 40:
-            sections.append({'transcript': currentSection, 'time': seconds})
-            secCount = 0
-            currentSection= ''
-        lastSec = seconds
+    #for word in transcript:
+    #    seconds = word['startTime']
+    #    secCount += seconds - lastSec
+    #    currentSection += word['word'] + ' '
+    #    if secCount > 40:
+    #        sections.append({'transcript': currentSection, 'time': seconds})
+    #        secCount = 0
+    #        currentSection= ''
+    #    lastSec = seconds
 
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
     processed = []
+
     stopWords = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
-    for section in sections:
+    for section in transcript:
         processedSection = []
-        for token in nltk.word_tokenize(section['transcript']):
-            if token not in stopWords:
-                processedSection.append(lemmatizer.lemmatize(token).lower())
+        for word in section:
+            if word['word'] not in stopWords:
+                processedSection.append(lemmatizer.lemmatize(word['word']).lower())
         processed.append(processedSection)
 
 
@@ -64,5 +65,5 @@ def hdp_json(transcriptFile):
     pp.pprint(hdp_model.print_topics(num_topics=15, num_words=10))
 
     for i, val in enumerate(corpus_tfidf):
-        print(str(round( (int(sections[i]['time']) / 60),1)) + " start min\n   ", end='')
+        print(str(round( (int(transcript[i][0]['startTime']) / 60),1)) + " start min\n   ", end='')
         print(sorted(hdp_model[val], reverse=True, key=lambda tup: tup[1]))

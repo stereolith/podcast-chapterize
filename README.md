@@ -15,7 +15,7 @@ This project aims to automatically provide longform audio podcast episodes with 
     * refinment using cue phrases is difficult when trying to achieve wide-domain application for many different podcasts, this step can be skipped
 * Add plot of cluster allocation over time for kmeans clustering approach
 * Update transcribe/transcribe_google.py script to include utterance structure from google speech to text api in json transcript output (google speech api gives usable segmentation of longform audio into utterances or segments, useful for eliminating segmentation with an arbritarily chosen segment width for preprocessing)
-  * **ToDo: segmentation scripts need to be adjusted to process the new transcript format**
+  * adapted kmeans, LDA and HDP approach to accept new transcript format; **topic/ cluster over time plot needs adjustment because of variable segment lengths**
 
 ### 17.07.2019
 * Add plot of topic distribution over time with matplotlib for lda approach (ToDo: add graph to hdp and k-means approach)

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def k_cluster(transcriptFile, k=15, windowSize=40):
+def k_cluster(transcriptFile, k=15):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -19,30 +19,44 @@ def k_cluster(transcriptFile, k=15, windowSize=40):
         return
 
     # split transcript into 20 second long documents
-    sections = []
-    currentSection = ''  
-    lastSec = 0
-    secCount = 0
+    #sections = []
+    #currentSection = ''  
+    #lastSec = 0
+    #secCount = 0
 
-    for word in transcript:
-        seconds = word['startTime']
-        secCount += seconds - lastSec
-        currentSection += word['word'] + ' '
-        if secCount > windowSize:
-            sections.append({'transcript': currentSection, 'time': seconds})
-            secCount = 0
-            currentSection= ''
-        lastSec = seconds
+    #for word in transcript:
+    #    seconds = word['startTime']
+    #    secCount += seconds - lastSec
+    #    currentSection += word['word'] + ' '
+    #    if secCount > windowSize:
+    #        sections.append({'transcript': currentSection, 'time': seconds})
+    #        secCount = 0
+    #        currentSection= ''
+    #   lastSec = seconds
+
+    # generate list of section lengths & durations
+    sectionTime = []
+    for i, section in enumerate(transcript):
+        if i+1 < len(transcript):
+            sectionTime.append({
+                'startTime': section[0]['startTime'],
+                'duration': transcript[i+1][0]['startTime'] - section[0]['startTime']
+            })
+        else:
+            sectionTime.append({
+                'startTime': section[0]['startTime'],
+                'duration': transcript[-1][-1]['startTime'] / len(transcript)
+            })     
 
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
     processed = []
 
     lemmatizer = WordNetLemmatizer()
-    for section in sections:
+    for section in transcript:
         processedSection = ''
-        for token in nltk.word_tokenize(section['transcript']):
-            processedSection += ' ' + lemmatizer.lemmatize(token).lower()
+        for word in section:
+            processedSection += ' ' + lemmatizer.lemmatize(word['word']).lower()
         processed.append(processedSection)
 
     # create vectorizer, incl. removal of stopwords
@@ -53,13 +67,13 @@ def k_cluster(transcriptFile, k=15, windowSize=40):
     km.fit(X)
 
     for i, label in enumerate(km.labels_.tolist()):
-        print("Section from min {} assigned to cluster {}".format(str(round(int(sections[i]['time']) / 60, 2)), label))
+        print("Section from min {} assigned to cluster {}".format(str(round(int(transcript[i][0]['startTime']) / 60, 2)), label))
     
-    visualize(km.labels_.tolist(), k, windowSize)
+    visualize(km.labels_.tolist(), k, sectionTime)
 
     return km
 
-def visualize(labels, k, windowSize):
+def visualize(labels, k, sectionTime):
     document_cluster_over_time = [[] for x in range(k)]
     for i, label in enumerate(labels):
         document_cluster_over_time[label].append(i)
@@ -75,7 +89,7 @@ def visualize(labels, k, windowSize):
     ax.set_yticks(y_pos)
     ax.invert_yaxis()
     for i in range(len(document_cluster_over_time)):
-        xranges = [(t*(windowSize/60), (windowSize/60)) for t in document_cluster_over_time[i]]
+        xranges = [((sectionTime[t]['startTime']/60), (sectionTime[t]['duration']/60)) for t in document_cluster_over_time[i]]
         ax.broken_barh(xranges, (i-0.3, .6), facecolors='tab:blue')
 
     ax.set_yticklabels(clusterLabels)

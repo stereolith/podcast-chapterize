@@ -22,20 +22,20 @@ def lda_json(transcriptFile, noTopics=10, windowSize=30):
         return
 
     # split transcript into 20 second long documents
-    sections = []
-    currentSection = ''  
-    lastSec = 0
-    secCount = 0
+    #sections = []
+    #currentSection = ''  
+    #lastSec = 0
+    #secCount = 0
 
-    for word in transcript:
-        seconds = word['startTime']
-        secCount += seconds - lastSec
-        currentSection += word['word'] + ' '
-        if secCount > windowSize:
-            sections.append({'transcript': currentSection, 'time': seconds})
-            secCount = 0
-            currentSection= ''
-        lastSec = seconds
+    #for word in transcript:
+    #    seconds = word['startTime']
+    #    secCount += seconds - lastSec
+    #    currentSection += word['word'] + ' '
+    #    if secCount > windowSize:
+    #        sections.append({'transcript': currentSection, 'time': seconds})
+    #        secCount = 0
+    #        currentSection= ''
+    #    lastSec = seconds
 
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
@@ -43,11 +43,11 @@ def lda_json(transcriptFile, noTopics=10, windowSize=30):
 
     stopWords = set(stopwords.words('english'))
     lemmatizer = WordNetLemmatizer()
-    for section in sections:
+    for section in transcript:
         processedSection = []
-        for token in nltk.word_tokenize(section['transcript']):
-            if token not in stopWords:
-                processedSection.append(lemmatizer.lemmatize(token).lower())
+        for word in section:
+            if word['word'] not in stopWords:
+                processedSection.append(lemmatizer.lemmatize(word['word']).lower())
         processed.append(processedSection)
 
     # create dictionary (occurance of words per section)
@@ -70,7 +70,7 @@ def lda_json(transcriptFile, noTopics=10, windowSize=30):
 
     document_topics_over_time = [[] for x in range(noTopics)]
     for i, val in enumerate(corpus_tfidf):
-        print(str(int(sections[i]['time']) / 60) + " start min\n   ", end='')
+        print(str(int(transcript[i][0]['startTime']) / 60) + " start min\n   ", end='')
         topics = lda_model.get_document_topics(val, minimum_probability=0.1)
         print(topics)
         for topic in topics:
@@ -78,7 +78,7 @@ def lda_json(transcriptFile, noTopics=10, windowSize=30):
 
     visual = pyLDAvis.gensim.prepare(lda_model, corpus_tfidf, dictionary)
     pyLDAvis.save_html(visual, 'visual.html')
-    visualize(document_topics_over_time, windowSize)
+    #visualize(document_topics_over_time, windowSize)
     return lda_model
 
 def visualize(topics_t, windowSize):
