@@ -6,6 +6,17 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 19.07.2019
+* Exploration of different approaches to text segmentation, as topic modeling first approaches yielded not very usable results:
+  * Using a neural network ([Attention-based Neural Text Segmentation](https://arxiv.org/pdf/1808.09935.pdf))
+  * [Text segmentation of spoken meeting transcripts](https://link.springer.com/content/pdf/10.1007%2Fs10772-009-9048-2.pdf)
+    * based on TextTiling algorithm with lexical chaining and refinment using cue phrases
+    * specifically for transcripts of spoken multi-party conversation (text that is rarely eypository and has a "poor structure, spontaneous nature of communication and often argumentative nature as well as their infor-mal style" (p.1re))
+    * refinment using cue phrases is difficult when trying to achieve wide-domain application for many different podcasts, this step can be skipped
+* Add plot of cluster allocation over time for kmeans clustering approach
+* Update transcribe/transcribe_google.py script to include utterance structure from google speech to text api in json transcript output (google speech api gives usable segmentation of longform audio into utterances or segments, useful for eliminating segmentation with an arbritarily chosen segment width for preprocessing)
+  * **ToDo: segmentation scripts need to be adjusted to process the new transcript format**
+
 ### 17.07.2019
 * Add plot of topic distribution over time with matplotlib for lda approach (ToDo: add graph to hdp and k-means approach)
   ![topic distribution over time](doc_files/topicsovertime.png)

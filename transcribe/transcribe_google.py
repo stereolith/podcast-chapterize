@@ -52,6 +52,7 @@ def transcribeBlob(gcs_uri):
     print('Waiting for transcription to complete...')
     response = operation.result(timeout=10000)
 
+    utterances = []
     words = []
     for result in response.results:
         print(u'Transcript: {}'.format(result.alternatives[0].transcript))
@@ -61,8 +62,10 @@ def transcribeBlob(gcs_uri):
             w['word'] = word.word
             w['startTime'] = word.start_time.seconds + (word.start_time.nanos / 1000000000)
             words.append(w)
-            
+        utterances.append(words)
+        words = []
+        
     with open('transcribe/transcripts/transcript_' + os.path.basename(gcs_uri) + '.json', 'w') as f:
-        json.dump(words, f)
+        json.dump(utterances, f)
 
     return os.path.basename(gcs_uri)

@@ -5,6 +5,9 @@ from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 import json
 
 def k_cluster(transcriptFile, k=15, windowSize=40):
@@ -51,5 +54,33 @@ def k_cluster(transcriptFile, k=15, windowSize=40):
 
     for i, label in enumerate(km.labels_.tolist()):
         print("Section from min {} assigned to cluster {}".format(str(round(int(sections[i]['time']) / 60, 2)), label))
+    
+    visualize(km.labels_.tolist(), k, windowSize)
 
     return km
+
+def visualize(labels, k, windowSize):
+    document_cluster_over_time = [[] for x in range(k)]
+    for i, label in enumerate(labels):
+        document_cluster_over_time[label].append(i)
+
+    print(document_cluster_over_time)
+
+    fig, ax = plt.subplots()
+
+    clusterLabels = ['Cluster ' + str(i) for i in range(len(document_cluster_over_time))]
+
+    y_pos = np.arange(len(document_cluster_over_time))
+
+    ax.set_yticks(y_pos)
+    ax.invert_yaxis()
+    for i in range(len(document_cluster_over_time)):
+        xranges = [(t*(windowSize/60), (windowSize/60)) for t in document_cluster_over_time[i]]
+        ax.broken_barh(xranges, (i-0.3, .6), facecolors='tab:blue')
+
+    ax.set_yticklabels(clusterLabels)
+    ax.set_xlabel('Time in minutes')
+    ax.set_title('Cluster allocation over time')
+    ax.grid(True)
+    plt.margins(0.02, 0.05)
+    plt.show()
