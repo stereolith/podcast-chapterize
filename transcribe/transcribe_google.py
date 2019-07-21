@@ -14,7 +14,8 @@ def transcribeAudioFromUrl(url):
     rawPath = os.path.join('transcribe/download', filename)
     print('\ndownloaded file {0}'.format(rawPath))
     path = toWav(rawPath)
-    return uploadToGoogleCloud(path)
+    gcsUri = uploadToGoogleCloud(path)
+    transcribeBlob(gcsUri)
 
 def uploadToGoogleCloud(filepath):
     print('\nupload file {0} to google cloud bucket'.format(filepath))
@@ -24,7 +25,7 @@ def uploadToGoogleCloud(filepath):
     blob = bucket.blob(os.path.basename(filepath))
     blob.upload_from_filename(filepath)
 
-    return transcribeBlob('gs://' + bucket_name + '/' + os.path.basename(filepath))
+    return 'gs://' + bucket_name + '/' + os.path.basename(filepath)
 
 def toWav(path):
     filename = os.path.splitext(os.path.basename(path))[0]
@@ -32,7 +33,7 @@ def toWav(path):
     cmd = 'ffmpeg -i {0} -vn -ac 1 -acodec pcm_s16le -ar 16000 {1}'.format(path, dest)
     print('\nconvert file {0} to wav format'.format(path))
     os.system(cmd)
-    os.remove(path)
+    #os.remove(path)
     return dest
 
 def transcribeBlob(gcs_uri):
@@ -45,7 +46,8 @@ def transcribeBlob(gcs_uri):
         encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=16000,
         language_code='en-US',
-        enable_word_time_offsets=True)
+        enable_word_time_offsets=True
+        )
 
     operation = client.long_running_recognize(config, audio)
 

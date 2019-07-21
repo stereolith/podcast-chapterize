@@ -6,6 +6,20 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 21.07.2019
+* For k_means clustering, optimize for k (number of clusters)
+  * "elbow"-approach (optimize_k_elbow function)
+    * can not find elbow, problem with tfidf vector?
+  * [silhouette analysis](https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html) approach (optimize_k_silhouette function)
+    * local maximums give values for k that work well, when there are multiple high silhouette score averages in the search range for k, choose the high point with the lowest k
+    * example: [**Pod Save America** Episode "Racist Hall of Fame"](https://crooked.com/podcast/racist-hall-of-fame) 
+      * plot of silhouette score averages for k in range (2, 20); at k=3 there is a local maximum
+      ![silhouette score average for k](doc_files/silhouette_avgs_podsaveamerica.png)
+      * cluster allocation over time for k=3
+      ![cluster allocation over time for k=3](doc_files/kmeans_cluster_k3_podsaveamerica.png)
+      * Actual topic changes occur at t≈22 and t≈64; advertisement breaks occur at minute 61-63 and minute 39-43, which is almost perfectly represented by cluster 2; **promising results!!**
+      * for k_cluster function, parameter tfidf2D=True has to be set if number of topics is determined with silhouette analysis
+
 ### 19.07.2019
 * Exploration of different approaches to text segmentation, as topic modeling first approaches yielded not very usable results:
   * Using a neural network ([Attention-based Neural Text Segmentation](https://arxiv.org/pdf/1808.09935.pdf))
