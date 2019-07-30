@@ -19,22 +19,6 @@ def k_cluster(transcriptFile, k=15, visual=True, tfidf2D=False):
         print("File not found")
         return
 
-    # split transcript into 20 second long documents
-    #sections = []
-    #currentSection = ''  
-    #lastSec = 0
-    #secCount = 0
-
-    #for word in transcript:
-    #    seconds = word['startTime']
-    #    secCount += seconds - lastSec
-    #    currentSection += word['word'] + ' '
-    #    if secCount > windowSize:
-    #        sections.append({'transcript': currentSection, 'time': seconds})
-    #        secCount = 0
-    #        currentSection= ''
-    #   lastSec = seconds
-
     # generate list of section lengths & durations
     sectionTime = []
     for i, section in enumerate(transcript):

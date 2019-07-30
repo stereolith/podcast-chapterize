@@ -6,6 +6,18 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 30.07.2019
+* New approach: calculate lexical similarity via cosine similarity of adjacent text segments
+  * cosine similarity score (dot product) is calculated for pairs of documents, based on tf-idf weighted term-document matrix
+  * algorithm considers position of segments in text as well because only adjacent segments are compared for similarity, versus clustering and topic modeling approaches that see the documents in corpus not as a segmented parts of a consecutive whole, but as documents in no particular order
+  * minSegmentLength attribute can be set to combine adjacent segments if the word count is below a threshold value to reduce the number of very short segments that are not useful/ representative in similarity analysis
+  * plot for cosine similarity (y) for each segment shift, projected on the segment start/ end times (x):
+  ![cosine similarity for pod save the queen](doc_files/cosine_similarity_podsaveamerica.png)
+    * a high cosine means high similarity, so valleys in this plot signal low similarity -> topic shifts
+    * here, valleys represent actual topic shifts, i.e. advertisement breaks at minute 61-63 and minute 39-43 and topic shift at minute 64
+  * next steps: boundary indentification (find local minima in plot)
+  * topic modeling after text segmentation to find topic terms?
+
 ### 21.07.2019
 * For k_means clustering, optimize for k (number of clusters)
   * "elbow"-approach (optimize_k_elbow function)
@@ -19,6 +31,7 @@ This project aims to automatically provide longform audio podcast episodes with 
       ![cluster allocation over time for k=3](doc_files/kmeans_cluster_k3_podsaveamerica.png)
       * Actual topic changes occur at t≈22 and t≈64; advertisement breaks occur at minute 61-63 and minute 39-43, which is almost perfectly represented by cluster 2; **promising results!!**
       * for k_cluster function, parameter tfidf2D=True has to be set if number of topics is determined with silhouette analysis
+      * Improvement: exclude segments with less than x tokens?
 
 ### 19.07.2019
 * Exploration of different approaches to text segmentation, as topic modeling first approaches yielded not very usable results:

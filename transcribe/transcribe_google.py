@@ -33,7 +33,6 @@ def toWav(path):
     cmd = 'ffmpeg -i {0} -vn -ac 1 -acodec pcm_s16le -ar 16000 {1}'.format(path, dest)
     print('\nconvert file {0} to wav format'.format(path))
     os.system(cmd)
-    #os.remove(path)
     return dest
 
 def transcribeBlob(gcs_uri):
