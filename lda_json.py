@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def lda_json(transcriptFile, noTopics=10, windowSize=30):
+def lda_json(transcriptFile, minSegmentLength=30, noTopics=15, windowSize=30):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -21,34 +21,38 @@ def lda_json(transcriptFile, noTopics=10, windowSize=30):
         print("File not found")
         return
 
-    # split transcript into 20 second long documents
-    #sections = []
-    #currentSection = ''  
-    #lastSec = 0
-    #secCount = 0
-
-    #for word in transcript:
-    #    seconds = word['startTime']
-    #    secCount += seconds - lastSec
-    #    currentSection += word['word'] + ' '
-    #    if secCount > windowSize:
-    #        sections.append({'transcript': currentSection, 'time': seconds})
-    #        secCount = 0
-    #        currentSection= ''
-    #    lastSec = seconds
-
     # preprocess: 
-    # lowercase, lemmatize, remove stopwords
+    # combine segments minSegmentLength is not reached, lowercase, lemmatize, remove stopwords
     processed = []
-
-    stopWords = set(stopwords.words('english'))
+    combinedSections = []
     lemmatizer = WordNetLemmatizer()
-    for section in transcript:
-        processedSection = []
+    stopWords = set(stopwords.words('english'))
+    wordCount = 0
+    processedSection = []
+    for i, section in enumerate(transcript):
         for word in section:
             if word['word'] not in stopWords:
                 processedSection.append(lemmatizer.lemmatize(word['word']).lower())
-        processed.append(processedSection)
+        if wordCount >= minSegmentLength:
+            # combined section reached minSegmentLength
+            processed.append(processedSection)
+            processedSection = []
+            wordCount = 0
+        elif len(section) < minSegmentLength or wordCount != 0:
+            # section or combined sections are too short
+            wordCount += len(section)
+            combinedSections.append(i)
+        else:
+            # individual section exceeds minSegmentLength
+            processed.append(processedSection)
+            processedSection = []
+
+    # combine sections of transcript together due to minSegmentLength
+    for i in sorted(combinedSections, reverse=True):
+        transcript[i].append(transcript[i+1])
+        del transcript[i+1]
+
+    print(str(len(combinedSections)) + ' segments combined due to minSegmentLength')
 
     # create dictionary (occurance of words per section)
     dictionary = gensim.corpora.Dictionary(processed)

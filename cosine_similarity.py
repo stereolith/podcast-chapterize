@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def cosine_similarity(transcriptFile, minSegmentLength=20 , visual=False):
+def cosine_similarity(transcriptFile, minSegmentLength=30 , visual=True):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -62,10 +62,6 @@ def cosine_similarity(transcriptFile, minSegmentLength=20 , visual=False):
     for i in sorted(combinedSections, reverse=True):
         del sectionTime[i]
 
-    print(len(combinedSections))
-    print(len(sectionTime))
-    print(len(processed))
-
     # vectorize, remove of stopwords and weigh by tf-idf
     vectorizer = TfidfVectorizer(min_df=4, max_df=0.95, stop_words='english')
     tfidf = vectorizer.fit_transform(processed)
@@ -89,7 +85,7 @@ def visualize(cosine_similarities, sectionTimes):
     for section in sectionTimes[:-1]:
         endTimes.append((section['startTime'] + section['duration']) / 60)
 
-    plt.plot(endTimes, cosine_similarities)
+    plt.plot(endTimes, cosine_similarities, marker='.')
     plt.ylabel('cosine similarity')
     plt.xlabel('time in minutes')
     plt.show()

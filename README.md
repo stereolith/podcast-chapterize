@@ -6,6 +6,9 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 01.08.2019
+* Add minimum segment length parameter to lda and hdp approaches
+
 ### 30.07.2019
 * New approach: calculate lexical similarity via cosine similarity of adjacent text segments
   * cosine similarity score (dot product) is calculated for pairs of documents, based on tf-idf weighted term-document matrix
