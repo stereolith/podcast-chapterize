@@ -6,6 +6,19 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 07.08.2019
+* add smoothing function (Savitzky-Golay filter) for cosine similarity plot
+  * Can smoothing be used here? Smoothing is done on the array of cosine similarity scores per segment shift, while each segment has a variable length (coming from google speech api's utterance detection). So smoothing is done on a plot where [x = # segmentShift], but should be done where [x = t or x = # tokens], but [should be done on equally spaced data](http://wresch.github.io/2014/06/26/savitzky-golay.html)
+    * Solution: calculate cosine similarity score for segments of a set length
+    * **but information about utterance boundaries gets lost** Solution: after topic boundary detection (smoothing, local minima), for each detected topic boundary, set nearest utterance boundary as actual topic shift point. Because:
+      * Topic shifts most likely occur at utterance boundaries
+      * Even if an actual topic boundary is not exact at this point, point is still in between utterances
+  * parameters for Savitzky-Golay filter (window length and polyorder) vary result vastly, needs some more testing
+* add minima calculation for smoothed cosine similarity plot (minima should be points of topic change)
+* add visualization of minima detection (x values misaligned because data is not equally spaced for smoothing, see above)
+  * raw vs smoothed plot & local minima, Pod Save America Episode "Racist Hall of Fame":
+  ![raw vs smoothed plot & local minima](doc_files/pod-save-america_smoothed_minima.png)
+
 ### 01.08.2019
 * Add minimum segment length parameter to lda and hdp approaches
 
@@ -15,7 +28,7 @@ This project aims to automatically provide longform audio podcast episodes with 
   * algorithm considers position of segments in text as well because only adjacent segments are compared for similarity, versus clustering and topic modeling approaches that see the documents in corpus not as a segmented parts of a consecutive whole, but as documents in no particular order
   * minSegmentLength attribute can be set to combine adjacent segments if the word count is below a threshold value to reduce the number of very short segments that are not useful/ representative in similarity analysis
   * plot for cosine similarity (y) for each segment shift, projected on the segment start/ end times (x):
-  ![cosine similarity for pod save the queen](doc_files/cosine_similarity_podsaveamerica.png)
+  ![cosine similarity for pod save america](doc_files/cosine_similarity_podsaveamerica.png)
     * a high cosine means high similarity, so valleys in this plot signal low similarity -> topic shifts
     * here, valleys represent actual topic shifts, i.e. advertisement breaks at minute 61-63 and minute 39-43 and topic shift at minute 64
   * next steps: boundary indentification (find local minima in plot)

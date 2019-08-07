@@ -3,9 +3,10 @@ from nltk.stem import WordNetLemmatizer
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
-# Note that the tf-idf functionality in sklearn.feature_extraction.text can produce normalized vectors, in which case cosine_similarity is equivalent to linear_kernel, only slower.
 
 import numpy as np
+from scipy.signal import savgol_filter
+from scipy.signal import argrelextrema
 import matplotlib.pyplot as plt
 
 import json
@@ -74,18 +75,33 @@ def cosine_similarity(transcriptFile, minSegmentLength=30 , visual=True):
         cosine_similarity = linear_kernel(doc_vec, tfidf[i+1])[0][0]
         cosine_similarities.append(cosine_similarity)
         print(cosine_similarity)
+
+    # smooth curve with Savitzky-Golay filter
+    cosine_similarities_smooth = savgol_filter(cosine_similarities, 11, 4)
+
+    # calculate local minima
+    minima = argrelextrema(cosine_similarities_smooth, np.less)
+    print('local minima found at ', minima)
     
     if visual:
-        visualize(cosine_similarities, sectionTime)
+        visualize(cosine_similarities_smooth, cosine_similarities, minima, sectionTime)
 
-    return [cosine_similarities, sectionTime]
+    return [cosine_similarities_smooth, minima, sectionTime]
 
-def visualize(cosine_similarities, sectionTimes): 
+def visualize(cosine_similarities, cosine_similarities_raw, minima, sectionTimes): 
     endTimes = []
     for section in sectionTimes[:-1]:
         endTimes.append((section['startTime'] + section['duration']) / 60)
 
-    plt.plot(endTimes, cosine_similarities, marker='.')
+    minimaX = [np.array(endTimes)[minimum] for minimum in minima]
+    minimaY = [cosine_similarities[minimum] for minimum in minima]
+
+    fig, ax = plt.subplots(figsize=(13, 6))
+
+    plt.plot(endTimes, cosine_similarities_raw, 'lightblue', label='cosine similarity', zorder=0)
+    plt.plot(endTimes, cosine_similarities, marker='.', label='smoothed cosine similarity', zorder=1)
+    plt.scatter(minimaX, minimaY, c='red', label='topic shift', zorder=2)
+    ax.legend()
     plt.ylabel('cosine similarity')
     plt.xlabel('time in minutes')
     plt.show()

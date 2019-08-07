@@ -1,3 +1,4 @@
 transcribe/download
 alt/
 .vscode
+*.tmp
