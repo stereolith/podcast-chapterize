@@ -1,14 +1,59 @@
 from transcribe.parse_rss import getAudioUrl
 from transcribe.transcribe_google import transcribeAudioFromUrl
-from lda_json import lda_json
 
-feedUrl = input("feed url: ")
-episode = input("episode no (0 for latest): ")
+import uuid
+import os
+import json
+
+def saveJob(_job):
+    with open('jobs.json', 'r+') as f:
+        if not os.stat(f.fileno()).st_size == 0:
+            jobs = json.load(f)
+        else:
+            jobs = []
+
+        updated = False
+        for job in jobs:
+            if job["id"] == _job['id']:
+                job.update(_job)
+                print('job found, updating info')
+        
+        if not updated:
+            print('job not found, adding job')
+            jobs.append(_job)
+        json.dump(jobs, f)
+
+feedUrl = input('feed url: ')
+episode = input('episode no (0 for latest): ')
+
+
 if episode != '':
-    url = getAudioUrl(feedUrl, int(episode))
+    episodeInfo = getAudioUrl(feedUrl, int(episode))
 else:
-    url = getAudioUrl(feedUrl)
+    episodeInfo = getAudioUrl(feedUrl)
 
-filename = transcribeAudioFromUrl(url)
+# create job object
+# possible status states: 'CREATED', 'TRANSCRIBING', 'TRANSCRIBED', 'NLP', 'CHAPTER_WRITTEN', 'DONE'
 
-lda_json('transcribe/transcripts/' + filename + '.json')
+jobId = str(uuid.uuid1())
+job = {
+    'id': jobId,
+    'feedUrl': feedUrl,
+    'episodeUrl': episodeInfo['episodeUrl'],
+    'episodeTitle': episodeInfo['episodeTitle'],
+    'feedAuthor': episodeInfo['author'],
+    'status': 'TRANSCRIBING'
+}
+
+saveJob(job)
+
+paths = transcribeAudioFromUrl(episodeInfo['episodeUrl'])
+# paths: [originalAudioPath, wavAudioPath, gcsUri]
+
+job['originalAudioFilePath'] = paths['originalAudioFilePath']
+job['wavAudioFilePath'] = paths['wavAudioFilePath']
+job['transcriptFile'] = paths['transcriptFile']
+job['gcsUri'] = paths['gcsUri']
+job['status'] = 'TRANSCRIBED'
+
+saveJob(job)

@@ -6,6 +6,11 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 09.08.2019
+* add jobs handling in main script
+* add write chapters function to write id3 chapters to mp3 files
+  * creates textfile with chapters and chapter titles
+
 ### 07.08.2019
 * add smoothing function (Savitzky-Golay filter) for cosine similarity plot
   * Can smoothing be used here? Smoothing is done on the array of cosine similarity scores per segment shift, while each segment has a variable length (coming from google speech api's utterance detection). So smoothing is done on a plot where [x = # segmentShift], but should be done where [x = t or x = # tokens], but [should be done on equally spaced data](http://wresch.github.io/2014/06/26/savitzky-golay.html)

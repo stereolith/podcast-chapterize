@@ -15,7 +15,13 @@ def transcribeAudioFromUrl(url):
     print('\ndownloaded file {0}'.format(rawPath))
     path = toWav(rawPath)
     gcsUri = uploadToGoogleCloud(path)
-    transcribeBlob(gcsUri)
+    transcriptFile = transcribeBlob(gcsUri)
+    return {
+        'originalAudioFilePath': rawPath,
+        'wavAudioFilePath': path,
+        'gcsUri': gcsUri,
+        'transcriptFile': transcriptFile
+    }
 
 def uploadToGoogleCloud(filepath):
     print('\nupload file {0} to google cloud bucket'.format(filepath))
@@ -69,4 +75,4 @@ def transcribeBlob(gcs_uri):
     with open('transcribe/transcripts/transcript_' + os.path.basename(gcs_uri) + '.json', 'w') as f:
         json.dump(utterances, f)
 
-    return os.path.basename(gcs_uri)
+    return 'transcribe/transcripts/transcript_' + os.path.basename(gcs_uri) + '.json'
