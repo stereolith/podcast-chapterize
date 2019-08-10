@@ -11,62 +11,45 @@ import matplotlib.pyplot as plt
 
 import json
 
-def cosine_similarity(transcriptFile, minSegmentLength=30 , visual=True):
+def cosine_similarity(transcriptFile, windowWidth=300 , visual=True):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
     except OSError:
         print("File not found")
         return
-
-    # generate list of section lengths & durations
-    sectionTime = []
-    for i, section in enumerate(transcript):
-        if i+1 < len(transcript):
-            sectionTime.append({
-                'startTime': section[0]['startTime'],
-                'duration': transcript[i+1][0]['startTime'] - section[0]['startTime']
-            })
-        else:
-            sectionTime.append({
-                'startTime': section[0]['startTime'],
-                'duration': transcript[-1][-1]['startTime'] / len(transcript)
-            })
-    combinedSections = []
-
+    
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
-    # if section has less words than minSegmentLength, section is combined with next sections until minSegmentLength is reached
-    processed = []
+    # segment transcript into segments of windowWidth
+
+    flattenTranscript = [token for section in transcript for token in section]
+
+    processed = [] # segments of width windowWidth
+    endTimes = [] # end times of every segment
+    utteranceBoundaries = [] # index of last token in each utterance
 
     lemmatizer = WordNetLemmatizer()
-    wordCount = 0
+    totalTokenCount = 0
+    tokenCount = 0
     processedSection = ''
-    for i, section in enumerate(transcript):
-        for word in section:
-            processedSection += ' ' + lemmatizer.lemmatize(word['word']).lower()
-        if wordCount >= minSegmentLength:
-            # combined section reached minSegmentLength
-            processed.append(processedSection)
-            processedSection = ''
-            wordCount = 0
-        elif len(section) < minSegmentLength or wordCount != 0:
-            # section or combined sections are too short
-            wordCount += len(section)
-            combinedSections.append(i)
-        else:
-            # individual section exceeds minSegmentLength
-            processed.append(processedSection)
-            processedSection = ''
+    for section in transcript:
+        for token in section:
+            totalTokenCount += 1
+            tokenCount += 1
+            if tokenCount > windowWidth:
+                processed.append(processedSection)
+                endTimes.append(token['startTime'])
+                processedSection = ''
+                tokenCount = 0
+            processedSection += ' ' + lemmatizer.lemmatize(token['word']).lower()
+        utteranceBoundaries.append(totalTokenCount)
 
-    # remove elements of sectionTime list that are superflous because of combined sections
-    for i in sorted(combinedSections, reverse=True):
-        del sectionTime[i]
+    endTimes.pop()
 
     # vectorize, remove of stopwords and weigh by tf-idf
     vectorizer = TfidfVectorizer(min_df=4, max_df=0.95, stop_words='english')
     tfidf = vectorizer.fit_transform(processed)
-
     # tfidf matrix: rows: documents, columns: words
 
     # calculate cosine similarity score for adjacent segments
@@ -80,27 +63,37 @@ def cosine_similarity(transcriptFile, minSegmentLength=30 , visual=True):
     cosine_similarities_smooth = savgol_filter(cosine_similarities, 11, 4)
 
     # calculate local minima
-    minima = argrelextrema(cosine_similarities_smooth, np.less)
+    minima = argrelextrema(cosine_similarities_smooth, np.less)[0]
     print('local minima found at ', minima)
-    
+
+    #find closest utterance boundary for each local minima
+    segmentBoundaryTokens = []
+    for minimum in minima:
+        closest = min(utteranceBoundaries, key=lambda x:abs(x-(minimum*windowWidth)))
+        segmentBoundaryTokens.append(flattenTranscript[closest])
+        print('for minimum at token {}, closest utterance boundary is at token {}'.format(minimum*windowWidth, closest))
+
     if visual:
-        visualize(cosine_similarities_smooth, cosine_similarities, minima, sectionTime)
+        visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTokens, endTimes)
 
-    return [cosine_similarities_smooth, minima, sectionTime]
+    return [cosine_similarities_smooth, segmentBoundaryTokens]
 
-def visualize(cosine_similarities, cosine_similarities_raw, minima, sectionTimes): 
-    endTimes = []
-    for section in sectionTimes[:-1]:
-        endTimes.append((section['startTime'] + section['duration']) / 60)
+def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTokens, endTimes): 
+    endTimes = [time / 60 for time in endTimes]
 
     minimaX = [np.array(endTimes)[minimum] for minimum in minima]
     minimaY = [cosine_similarities[minimum] for minimum in minima]
+
+    segmentBoundaryTokensX = [token['startTime']/60 for token in segmentBoundaryTokens]
 
     fig, ax = plt.subplots(figsize=(13, 6))
 
     plt.plot(endTimes, cosine_similarities_raw, 'lightblue', label='cosine similarity', zorder=0)
     plt.plot(endTimes, cosine_similarities, marker='.', label='smoothed cosine similarity', zorder=1)
-    plt.scatter(minimaX, minimaY, c='red', label='topic shift', zorder=2)
+    plt.scatter(minimaX, minimaY, c='red', label='local minimum', zorder=2)
+    for x in segmentBoundaryTokensX:
+        plt.axvline(x=x)
+
     ax.legend()
     plt.ylabel('cosine similarity')
     plt.xlabel('time in minutes')

@@ -6,6 +6,11 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 10.08.2019
+* cosine similarity
+  * implement set exact segment word length length
+  * for each found local minima, find closest utterance boundary
+
 ### 09.08.2019
 * add jobs handling in main script
 * add write chapters function to write id3 chapters to mp3 files
