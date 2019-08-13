@@ -24,9 +24,10 @@ def write_chapters(chapters, audioFile):
     chapterIds = []
     for i, chapter in enumerate(chapters):
         endTime, title = chapter
+        endTime = int(endTime * 1000)
         startTime = 0
         if i != 0:
-            startTime = chapters[i-1][0]
+            startTime = int(chapters[i-1][0] * 1000)
             
         chapterId = str.encode('ch' + str(i))
         newChapter = tag.chapters.set(chapterId, (startTime, endTime))

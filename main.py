@@ -1,5 +1,7 @@
 from transcribe.parse_rss import getAudioUrl
 from transcribe.transcribe_google import transcribeAudioFromUrl
+from cosine_similarity import cosine_similarity
+from write_chapters import write_chapters
 
 import uuid
 import os
@@ -57,3 +59,10 @@ job['gcsUri'] = paths['gcsUri']
 job['status'] = 'TRANSCRIBED'
 
 saveJob(job)
+
+boundaries = cosine_similarity(job['transcriptFile'])
+
+# create generic chapter names 
+chapters = [[boundary, 'chapter ' + str(idx+1)] for idx, boundary in enumerate(boundaries)]
+
+write_chapters(chapters, job['originalAUdioFile'])

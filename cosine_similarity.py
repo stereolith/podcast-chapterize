@@ -68,15 +68,17 @@ def cosine_similarity(transcriptFile, windowWidth=300 , visual=True):
 
     #find closest utterance boundary for each local minima
     segmentBoundaryTokens = []
+    segmentBoundaryTimes = []
     for minimum in minima:
         closest = min(utteranceBoundaries, key=lambda x:abs(x-(minimum*windowWidth)))
         segmentBoundaryTokens.append(flattenTranscript[closest])
+        segmentBoundaryTimes.append(flattenTranscript[closest]['startTime'])
         print('for minimum at token {}, closest utterance boundary is at token {}'.format(minimum*windowWidth, closest))
 
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTokens, endTimes)
 
-    return [cosine_similarities_smooth, segmentBoundaryTokens]
+    return segmentBoundaryTimes
 
 def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTokens, endTimes): 
     endTimes = [time / 60 for time in endTimes]

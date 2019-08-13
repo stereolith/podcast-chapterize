@@ -6,6 +6,17 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 13.08.2019
+* main script
+  * add cosine similarity script as boundary detection
+  * write boundary times to file
+  * add chapter matkers to original mp3 file
+  * **first prototype of complete pipeline done**
+    * *audio file --> transcript --> boundary detection --> chapter markers in original audio file*
+  * chapter titles still missing
+    * TF-IDF weighted tokens for each section as chapter names?
+    * topic modeling on segmented transcript to infer topics?
+
 ### 10.08.2019
 * cosine similarity
   * implement set exact segment word length length
