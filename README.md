@@ -4,7 +4,15 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 [work in progress]
 
+### Requirements
+* ffmpeg
+
 ## Journal
+
+### 17.08.2019
+* Begin development for web frontend and backend (using [this](https://testdriven.io/blog/developing-a-single-page-app-with-flask-and-vuejs/))
+  * frontend: vue-based app created with vue-cli,  tailwindcss for fast prototyping styles
+  * backend: flask (backend framework written in python) for dynamic page rendering and API for nlp script execution/ job management
 
 ### 13.08.2019
 * main script
