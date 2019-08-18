@@ -19,3 +19,12 @@ def getAudioUrl(feedUrl, episode=0):
     except IndexError:
         print('could not find feed')
 
+def getEpisodes(feedUrl, last=10):
+    try:
+        feed = feedparser.parse(feedUrl)
+        episodes = feed['entries'][:last]
+        if feed['feed'] == {}: return 0
+        return [episode['title'] for episode in episodes]
+    except IndexError:
+        print('could not find all last episodes')
+        return 0

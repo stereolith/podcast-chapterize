@@ -9,6 +9,14 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 18.08.2019
+* web frontend:
+  * implement first step (URL entry and choice of episode)
+* backend API with flask:
+  * Add /episodes endpoint (GET, params: feedURL, returns last 10 Episode names of feed)
+
+![web frontend, first step](doc_files/web-frontend.png)
+
 ### 17.08.2019
 * Begin development for web frontend and backend (using [this](https://testdriven.io/blog/developing-a-single-page-app-with-flask-and-vuejs/))
   * frontend: vue-based app created with vue-cli,  tailwindcss for fast prototyping styles

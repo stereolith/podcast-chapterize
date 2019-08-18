@@ -1,6 +1,6 @@
 from transcribe.parse_rss import getAudioUrl
 from transcribe.transcribe_google import transcribeAudioFromUrl
-from cosine_similarity import cosine_similarity
+from chapterize.cosine_similarity import cosine_similarity
 from write_chapters import write_chapters
 
 import uuid
