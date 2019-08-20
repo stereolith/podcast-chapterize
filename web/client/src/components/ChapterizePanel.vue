@@ -2,9 +2,10 @@
 <div class="border rounded-lg shadow-md p-4 my-10 bg-white">
   <div class="flex flex-col">
 
-    <ChooseEpisode />
+    <ChooseEpisode v-if="jobId == ''"/>
+    <JobStatus v-if="jobId != ''"/>
 
-    <button class="px-4 py-2 mt-8 bg-pink-400 rounded text-white font-bold w-1/3 self-center">Start</button> 
+
   
   </div>
 </div>
@@ -13,17 +14,24 @@
 <script>
 import ProgressBar from './ProgressBar'
 import ChooseEpisode from './ChooseEpisode'
+import JobStatus from './JobStatus'
 
 export default {
   name: 'ChapterizePanel',
   components: {
     ProgressBar,
-    ChooseEpisode
+    ChooseEpisode,
+    JobStatus
   },
   data () {
     return {
       feedUrl: '',
       
+    }
+  },
+  computed: {
+    jobId () {
+      return this.$store.state.jobId
     }
   }
 }

@@ -6,8 +6,30 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ### Requirements
 * ffmpeg
+* Python modules
+  * feedparser
+  * flask
+  * flask_cors
+  * tinydb
+  * wget
+  * nltk
+  * sklearn
+  * matplotlib
+  * google-cloud-storage
+  * google-cloud-speech
+  * eyed3
 
 ## Journal
+
+### 20.08.2019 
+* switch job status management from textfile-based to tinydb
+* web client:
+  * added web interface for starting chapterize job
+  * added interface that gives status info about the job
+* server
+  * implemented API endpoints /job (POST) for creating a job; /status for getting job info
+
+![web frontend, first step](doc_files/frontend-status.png)
 
 ### 18.08.2019
 * web frontend:

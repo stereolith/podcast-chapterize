@@ -1,5 +1,6 @@
-transcribe/download
+transcribe/download/*
 alt/
 .vscode
 *.tmp
+*.pyc
 jobs.json

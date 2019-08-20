@@ -3,66 +3,80 @@ from transcribe.transcribe_google import transcribeAudioFromUrl
 from chapterize.cosine_similarity import cosine_similarity
 from write_chapters import write_chapters
 
-import uuid
 import os
 import json
 
-def saveJob(_job):
-    with open('jobs.json', 'r+') as f:
-        if not os.stat(f.fileno()).st_size == 0:
-            jobs = json.load(f)
-        else:
-            jobs = []
+from tinydb import TinyDB, Query
 
-        updated = False
-        for job in jobs:
-            if job["id"] == _job['id']:
-                job.update(_job)
-                print('job found, updating info')
-        
-        if not updated:
-            print('job not found, adding job')
-            jobs.append(_job)
-        json.dump(jobs, f)
+# create tinydb
+db = TinyDB('jobs.json')
+Job = Query()
 
-feedUrl = input('feed url: ')
-episode = input('episode no (0 for latest): ')
+def save_job(_job):
+    if len(db.search(Job.id == _job['id'])) != 0:
+        db.update(_job, Job.id == _job['id'])
+    else:
+        db.insert(_job)
+
+def get_job(id):
+    return db.search(Job.id == id)
 
 
-if episode != '':
-    episodeInfo = getAudioUrl(feedUrl, int(episode))
-else:
-    episodeInfo = getAudioUrl(feedUrl)
+def start_job(jobId, feedUrl, episode=''):
 
-# create job object
-# possible status states: 'CREATED', 'TRANSCRIBING', 'TRANSCRIBED', 'NLP', 'CHAPTER_WRITTEN', 'DONE'
+    
 
-jobId = str(uuid.uuid1())
-job = {
-    'id': jobId,
-    'feedUrl': feedUrl,
-    'episodeUrl': episodeInfo['episodeUrl'],
-    'episodeTitle': episodeInfo['episodeTitle'],
-    'feedAuthor': episodeInfo['author'],
-    'status': 'TRANSCRIBING'
-}
+    # possible status states: 'CREATED', 'TRANSCRIBING', 'TRANSCRIBED', 'NLP', 'CHAPTER_WRITTEN', 'DONE'
+    save_job({'id': jobId, 'status': 'CREATED'})
 
-saveJob(job)
+    # check if google cloud credentials env var is set
+    if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS') == None:
+        save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'Google Cloud credential env var not set'})
+        return
 
-paths = transcribeAudioFromUrl(episodeInfo['episodeUrl'])
-# paths: [originalAudioPath, wavAudioPath, gcsUri]
+    if episode != '':
+        episodeInfo = getAudioUrl(feedUrl, int(episode))
+    else:
+        episodeInfo = getAudioUrl(feedUrl)
 
-job['originalAudioFilePath'] = paths['originalAudioFilePath']
-job['wavAudioFilePath'] = paths['wavAudioFilePath']
-job['transcriptFile'] = paths['transcriptFile']
-job['gcsUri'] = paths['gcsUri']
-job['status'] = 'TRANSCRIBED'
+    if episodeInfo == None:
+        save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'could not find RSS feed or episode'})
+        return
 
-saveJob(job)
+    job = {
+        'id': jobId,
+        'feedUrl': feedUrl,
+        'episodeUrl': episodeInfo['episodeUrl'],
+        'episodeTitle': episodeInfo['episodeTitle'],
+        'feedAuthor': episodeInfo['author'],
+        'status': 'TRANSCRIBING'
+    }
+    save_job(job)
 
-boundaries = cosine_similarity(job['transcriptFile'])
+    paths = transcribeAudioFromUrl(episodeInfo['episodeUrl'])
+    # paths: [originalAudioPath, wavAudioPath, gcsUri]
 
-# create generic chapter names 
-chapters = [[boundary, 'chapter ' + str(idx+1)] for idx, boundary in enumerate(boundaries)]
+    job['originalAudioFilePath'] = paths['originalAudioFilePath']
+    job['wavAudioFilePath'] = paths['wavAudioFilePath']
+    job['transcriptFile'] = paths['transcriptFile']
+    job['gcsUri'] = paths['gcsUri']
+    job['status'] = 'NLP'
 
-write_chapters(chapters, job['originalAUdioFile'])
+    save_job(job)
+
+    boundaries = cosine_similarity(job['transcriptFile'])
+
+    save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
+
+    # create generic chapter names 
+    chapters = [[boundary, 'chapter ' + str(idx+1)] for idx, boundary in enumerate(boundaries)]
+
+    write_chapters(chapters, job['originalAudioFile'])
+
+    save_job({'id': jobId, 'status': 'DONE'})
+
+
+#feedUrl = input('feed url: ')
+#episode = input('episode no (0 for latest): ')
+
+#start_job(feedUrl, episode)

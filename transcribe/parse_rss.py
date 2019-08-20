@@ -18,6 +18,7 @@ def getAudioUrl(feedUrl, episode=0):
         }
     except IndexError:
         print('could not find feed')
+        return None
 
 def getEpisodes(feedUrl, last=10):
     try:

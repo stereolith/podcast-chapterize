@@ -1,11 +1,11 @@
 <template>
-  <div>
+  <div class="flex flex-col">
     <div class="flex flex-col">
       <div class="flex flex-row items-center justify-center border-bottom my-4">
         <div class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200 text-xl mr-2">1</div>
         <h2 class="text-lg text-center">Enter a podcast RSS feed URL</h2>
       </div>
-      <input type="text" v-model="feedUrl" placeholder="feed URL" :class="{'bg-red-200 border-red-200': urlError}" class="w-100 border bg-gray-200 text-gray-700 border-gray-500 focus:border-pink-400 rounded py-3 px-4"/>
+      <input type="text" v-model="feedUrl" placeholder="feed URL" :class="{'bg-red-200 border-red-200': urlError}" class="w-100 border bg-gray-200 text-gray-700 focus:border-pink-400 py-3 px-4"/>
       <div class="text-red-600" v-if="urlError">No podcast feed was forund for this URL.</div>
       <div v-if="loading" class="lds-ellipsis self-center"><div></div><div></div><div></div><div></div></div>
     </div>
@@ -14,7 +14,11 @@
         <div class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200 text-xl mr-2">2</div>
         <h2 class="text-lg text-center">Choose an episode</h2>
       </div>
-      <select name="episode" id="episodeSelect" class="block appearance-none w-full bg-gray-200 border border-gray-500 text-gray-700 py-3 px-4 pr-8 rounded focus:border-pink-400 focus:outline-none focus:bg-white focus:border-gray-500">
+      <select 
+        v-model="selectedEpisode"
+        name="episode"
+        id="episodeSelect"
+        class="block appearance-none w-full border text-gray-700 py-3 px-4 pr-8 bg-gray-200 focus:border-pink-400 focus:outline-none focus:bg-white focus:border-gray-500">
         <option
           v-for="episode in episodes"
           :value="episode.index"
@@ -24,6 +28,13 @@
         </option>
       </select>
     </div>
+    <button
+      v-if="episodesFound && !jobStarted"
+      @click="startJob"
+      class="px-4 py-2 mt-8 bg-pink-400 rounded text-white font-bold w-1/3 self-center"
+      :class="{'bg-gray-400 cursor-not-allowed': jobStarted}"
+    >Start chapterize episode</button> 
+    <div v-if="postError">There was an error when trying to start the chapterization.</div>
   </div>
 </template>
 
@@ -38,7 +49,10 @@ export default {
       loading: false,
       episodesFound: false,
       episodes: [],
-      urlError: false
+      selectedEpisode: 0,
+      urlError: false,
+      jobStarted: false,
+      postError: false
     }
   },
   methods: {
@@ -59,6 +73,23 @@ export default {
       .catch((error) => {
         this.loading = false
         this.urlError = true
+        console.error(error)
+      });
+    },
+    startJob () {
+      const path = 'http://localhost:5000/job'
+
+      axios.post(path, {
+          feedUrl: this.feedUrl,
+          episode: this.selectedEpisode
+      }).then((res) => {
+        this.loading = false
+        this.urlError = false
+        this.episodesFound = true
+        this.$store.commit('setId', res.data.jobId)
+      })
+      .catch((error) => {
+        this.postError = true
         console.error(error)
       });
     }

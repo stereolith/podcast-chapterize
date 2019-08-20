@@ -8,6 +8,8 @@ import json
 
 bucket_name = 'transcribe-buffer'
 
+os.system('export GOOGLE_APPLICATION_CREDENTIALS="/home/lukas/Documents/cred.json"')
+
 def transcribeAudioFromUrl(url):
     filename = os.path.basename(url)
     wget.download(url, out='transcribe/download')
