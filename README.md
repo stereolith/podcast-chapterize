@@ -21,6 +21,13 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 21.08.2019
+* frontend:
+  * add podlove web player to play chapterized episode
+  * **ToDo**: move all api calls to store function to avoid duplicate axios calls, central api url definition 
+* backend:
+  * create endpoint /player-config to get generated podlove player config (with metadata like title, links and chapters)
+
 ### 20.08.2019 
 * switch job status management from textfile-based to tinydb
 * web client:

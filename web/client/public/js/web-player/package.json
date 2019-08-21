@@ -1,0 +1,60 @@
+{
+  "_from": "@podlove/web-player",
+  "_id": "@podlove/web-player@4.5.9",
+  "_inBundle": false,
+  "_integrity": "sha512-f5OtU9KTKzZYVxEYt/hc9kWVBLDC2vNsrho95QZ1h9fMAx12uNzdHM0yIOZcsTZgDeUuz2wYEXTwA7VJEoYezg==",
+  "_location": "/@podlove/web-player",
+  "_phantomChildren": {
+    "color-convert": "1.9.3",
+    "color-string": "1.5.3"
+  },
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "@podlove/web-player",
+    "name": "@podlove/web-player",
+    "escapedName": "@podlove%2fweb-player",
+    "scope": "@podlove",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@podlove/web-player/-/web-player-4.5.9.tgz",
+  "_shasum": "ac97b4de436fce4520f65b2b18ac2b122324363c",
+  "_spec": "@podlove/web-player",
+  "_where": "/home/lukas/Documents/podcast-chapterize/web/client",
+  "author": {
+    "name": "Alexander Heimbuch",
+    "email": "github@heimbu.ch"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "@podlove/player": "^4.5.9",
+    "@podlove/player-actions": "^4.5.9",
+    "@podlove/player-state": "^4.5.9",
+    "@podlove/utils": "^4.5.9",
+    "color": "3.1.0",
+    "hashcode": "1.0.3",
+    "iframe-resizer": "4.0.4",
+    "localstorage": "1.0.1",
+    "ramda": "0.26.1"
+  },
+  "deprecated": false,
+  "description": "Embedded version of Podlove Player",
+  "devDependencies": {
+    "@podlove/build": "^4.5.9",
+    "cypress": "3.2.0",
+    "http-server": "0.11.1",
+    "webpack": "4.26.0",
+    "webpack-dev-server": "3.1.11"
+  },
+  "homepage": "https://github.com/podlove/ui/tree/development/apps/web-player",
+  "keywords": [],
+  "license": "MIT",
+  "name": "@podlove/web-player",
+  "version": "4.5.9"
+}

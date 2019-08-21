@@ -8,9 +8,9 @@ import json
 
 bucket_name = 'transcribe-buffer'
 
-os.system('export GOOGLE_APPLICATION_CREDENTIALS="/home/lukas/Documents/cred.json"')
 
 def transcribeAudioFromUrl(url):
+    os.system('export GOOGLE_APPLICATION_CREDENTIALS="/home/lukas/Documents/cred.json"')
     filename = os.path.basename(url)
     wget.download(url, out='transcribe/download')
     rawPath = os.path.join('transcribe/download', filename)
@@ -38,7 +38,7 @@ def uploadToGoogleCloud(filepath):
 def toWav(path):
     filename = os.path.splitext(os.path.basename(path))[0]
     dest = os.path.join('transcribe/download', filename) + '.wav'
-    cmd = 'ffmpeg -i {0} -vn -ac 1 -acodec pcm_s16le -ar 16000 {1}'.format(path, dest)
+    cmd = 'ffmpeg -y -i {0} -vn -ac 1 -acodec pcm_s16le -ar 16000 {1}'.format(path, dest)
     print('\nconvert file {0} to wav format'.format(path))
     os.system(cmd)
     return dest

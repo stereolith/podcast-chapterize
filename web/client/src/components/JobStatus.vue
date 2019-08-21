@@ -37,16 +37,16 @@ export default {
   methods: {
     getStatus () {
 
-      const path = 'http://localhost:5000/status'
+      const path = 'http://localhost:5000/job'
 
       axios.get(path, {
         params: {
           id: this.$store.state.jobId
         }
       }).then((res) => {
-        this.status = res.data.status.status
+        this.status = res.data.job.status
         if(this.status === 'FAILED' || this.status === 'DONE') clearInterval(interval)
-        console.log(res.data.status.status)
+        console.log(res.data.job.status)
       })
       .catch((error) => {
         console.error(error)

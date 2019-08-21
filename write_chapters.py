@@ -12,8 +12,8 @@ def write_chapters(chapters, audioFile):
     with open('{}/{}_chapters.txt'.format(folder, filename), 'w') as f:
         out = ''
         for chapter in chapters:
-            timeStr = time.strftime('%H:%M:%S', time.gmtime(chapter[0]))
-            out += '{} {}\n'.format(timeStr, chapter[1])
+            timeStr = time.strftime('%H:%M:%S', time.gmtime(chapter['time']))
+            out += '{} {}\n'.format(timeStr, chapter['name'])
         f.write(out)
 
     tag = Tag()
@@ -23,15 +23,14 @@ def write_chapters(chapters, audioFile):
 
     chapterIds = []
     for i, chapter in enumerate(chapters):
-        endTime, title = chapter
-        endTime = int(endTime * 1000)
+        endTime = int(chapter['time'] * 1000)
         startTime = 0
         if i != 0:
-            startTime = int(chapters[i-1][0] * 1000)
+            startTime = int(chapters[i-1]['time'] * 1000)
             
         chapterId = str.encode('ch' + str(i))
         newChapter = tag.chapters.set(chapterId, (startTime, endTime))
-        newChapter.sub_frames.setTextFrame(b'TIT2', u'{}'.format(title))
+        newChapter.sub_frames.setTextFrame(b'TIT2', u'{}'.format(chapter['name']))
         chapterIds.append(chapterId)
     
     tag.table_of_contents.set(b"toc", child_ids=chapterIds)

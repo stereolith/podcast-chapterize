@@ -1,5 +1,7 @@
 import nltk
 from nltk.stem import WordNetLemmatizer 
+import nltk
+nltk.download('wordnet')
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
@@ -11,7 +13,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def cosine_similarity(transcriptFile, windowWidth=300 , visual=True):
+def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -60,7 +62,9 @@ def cosine_similarity(transcriptFile, windowWidth=300 , visual=True):
         print(cosine_similarity)
 
     # smooth curve with Savitzky-Golay filter
-    cosine_similarities_smooth = savgol_filter(cosine_similarities, 11, 4)
+    window_length = min(11, len(cosine_similarities))
+    if window_length % 2 == 0: window_length -= 1
+    cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 4)
 
     # calculate local minima
     minima = argrelextrema(cosine_similarities_smooth, np.less)[0]

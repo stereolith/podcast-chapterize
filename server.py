@@ -5,7 +5,7 @@ import uuid
 import threading
 
 from transcribe.parse_rss import getEpisodes
-from main import start_job, get_job
+from main import start_job, get_job, get_player_config
 
 # configuration
 DEBUG = True
@@ -29,9 +29,11 @@ def episodes():
         response_object['episodes'] = [{'label': episode, 'index': idx} for idx, episode in enumerate(episodes)]
         return jsonify(response_object)
 
-# start transcription job
-@app.route('/job', methods=['POST'])
+# start transcription job (POST) / get job info (GET)
+@app.route('/job', methods=['GET', 'POST'])
 def job():
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
         jobId = str(uuid.uuid1())
         post_data = request.get_json()
         feedUrl = post_data.get('feedUrl')
@@ -39,21 +41,27 @@ def job():
         if feedUrl == None or episode == None:
             abort(400)
         else:
-            response_object = {'status': 'success', 'jobId': jobId}
+            response_object['jobId'] = jobId
             thread = threading.Thread(target=start_job, args=(jobId, feedUrl, episode,))
             thread.start()
-            return jsonify(response_object)
+    else:
+        job = get_job(request.args.get('id'))
+        if(job == None):
+            abort(404)
+        else:
+            response_object['job'] = job
+    return jsonify(response_object)
 
 
-# get job status
-@app.route('/status', methods=['GET'])
-def status():
-    status = get_job(request.args.get('id'))
-    if(len(status) == 0):
+# get podlove player config
+@app.route('/player-config', methods=['GET'])
+def config():
+    config = get_player_config(request.args.get('id'))
+    if config == None:
         abort(404)
     else:
         response_object = {'status': 'success'}
-        response_object['status'] = status[0]
+        response_object['config'] = config
         return jsonify(response_object)
 
 if __name__ == '__main__':
