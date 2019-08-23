@@ -69,13 +69,9 @@ def start_job(jobId, feedUrl, episode=''):
     }
     save_job(job)
 
-    boundaries = cosine_similarity(job['transcriptFile'], visual=False)
+    chapters = cosine_similarity(job['transcriptFile'], visual=False)
 
     save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
-
-    # create generic chapter names 
-    chapters = [{'time': boundary, 'name': 'chapter ' + str(idx+2)} for idx, boundary in enumerate(boundaries)]
-    chapters.insert(0, {'time': 0, 'name': 'chapter 1'})
 
     # write chapters to job onject
     save_job({'id': jobId, 'chapters': chapters})

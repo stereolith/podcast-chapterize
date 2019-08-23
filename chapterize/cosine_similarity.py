@@ -49,10 +49,12 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
 
     endTimes.pop()
 
+
     # vectorize, remove of stopwords and weigh by tf-idf
     vectorizer = TfidfVectorizer(min_df=4, max_df=0.95, stop_words='english')
     tfidf = vectorizer.fit_transform(processed)
     # tfidf matrix: rows: documents, columns: words
+
 
     # calculate cosine similarity score for adjacent segments
     cosine_similarities = []
@@ -61,14 +63,39 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
         cosine_similarities.append(cosine_similarity)
         print(cosine_similarity)
 
+
     # smooth curve with Savitzky-Golay filter
     window_length = min(11, len(cosine_similarities))
     if window_length % 2 == 0: window_length -= 1
     cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 4)
 
+
     # calculate local minima
     minima = argrelextrema(cosine_similarities_smooth, np.less)[0]
     print('local minima found at ', minima)
+
+
+    # find most common tokens for each section between minima by running tfidf weighing on combined sections
+    concat_segments = []
+    for i, minimum in enumerate(minima):
+        concat_segment = ''
+        if i == 0:
+            concat_segment += " ".join(processed[0: minimum + 1])
+        else:
+            concat_segment += " ".join(processed[minima[i-1] + 1 : minimum + 1])
+        concat_segments.append(concat_segment)
+    concat_segments.append(" ".join(processed[minima[-1] + 1:])) # append last section (from last boundary to end)
+    
+    concat_vectorizer = TfidfVectorizer(stop_words='english')
+    concat_tfidf = concat_vectorizer.fit_transform(concat_segments)
+    
+    # get top 6 tokens with the highest tfidf-weighted score for each combined section 
+    topTokens = []
+    feature_names = np.array(concat_vectorizer.get_feature_names())
+    for doc in concat_tfidf:
+        tfidf_sorted = np.argsort(doc.toarray()).flatten()[::-1]
+        topTokens.append(feature_names[tfidf_sorted][:6].tolist())
+    
 
     #find closest utterance boundary for each local minima
     segmentBoundaryTokens = []
@@ -82,7 +109,14 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTimes, endTimes)
 
-    return segmentBoundaryTimes
+
+    # prepare chapter/ name list
+    chapters = [{'time': 0, 'name': " ".join(topTokens[0])}]
+    for i, time in enumerate(segmentBoundaryTimes):
+        chapters.append({'time': time, 'name': " ".join(topTokens[i+1])})
+
+
+    return chapters
 
 def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTimes, endTimes): 
     endTimes = [time / 60 for time in endTimes]

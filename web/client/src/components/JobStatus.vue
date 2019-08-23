@@ -5,18 +5,18 @@
       <h3 class="block font-bold text-center">Check the status here</h3>
       
       <StatusBar 
-        v-if="status != 'FAILED'"
+        v-if="this.$store.state.jobStatus != 'FAILED'"
         :states="['created', 'transcribing', 'NLP', 'writing chapters to file', 'done']"
         :activeState="statusIndex"
       />
-      <div v-if="status === 'FAILED'">There was a problem.</div>
+      <div v-if="this.$store.state.jobStatus === 'FAILED'">There was a problem.</div>
 
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios'
+import { getJob } from '../resources'
 import { mapState } from 'vuex';
 
 import StatusBar from './StatusBar'
@@ -37,26 +37,7 @@ export default {
   methods: {
     getStatus () {
 
-      const path = 'http://localhost:5000/job'
-
-      axios.get(path, {
-        params: {
-          id: this.$store.state.jobId
-        }
-      }).then((res) => {
-        this.status = res.data.job.status
-        if(this.status === 'FAILED') {
-          clearInterval(interval)
-        } else if (this.status === 'DONE') {
-          clearInterval(interval)
-          this.$store.commit('setStep', 'DONE')
-        }
-        console.log(res.data.job.status)
-      })
-      .catch((error) => {
-        console.error(error)
-        clearInterval(interval)
-      });
+      this.$store.dispatch('updateStatus')
 
     },
     startIntervalPolling () {
@@ -66,7 +47,7 @@ export default {
   },
   computed: {
     statusIndex () {
-      switch(this.status) {
+      switch(this.$store.state.jobStatus) {
         case 'CREATED':
           return 0
         case 'TRANSCRIBING':
@@ -79,7 +60,7 @@ export default {
           return 4
       }
     },
-    ...mapState(['jobId'])
+    ...mapState(['jobId', 'jobStatus', 'statusError'])
   },
   mounted () {
     this.getStatus()
@@ -88,6 +69,16 @@ export default {
   watch: {
     jobId () {
       this.startIntervalPolling()
+    },
+    jobStatus (newStatus) {
+      if(newStatus === 'FAILED' || newStatus === 'DONE') {
+        clearInterval(interval)
+      }
+    },
+    statusError (error) {
+      if (error) {
+        clearInterval(interval)
+      }
     }
   }
 }

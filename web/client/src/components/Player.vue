@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { getPlayerConfig } from '../resources'
 
 import '../../public/js/web-player/embed'
 
@@ -24,11 +24,8 @@ export default {
   mounted() {
     const path = 'http://localhost:5000/player-config'
 
-    axios.get(path, {
-      params: {
-        id: this.$store.state.jobId
-      }
-    }).then((res) => {
+    getPlayerConfig(this.$store.state.jobId)
+    .then((res) => {
       var config = res.data.config
       console.log(config)
       this.initPlayer(config)

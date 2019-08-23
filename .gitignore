@@ -1,4 +1,5 @@
 transcribe/download/*
+web/client/public/episodes/*
 alt/
 .vscode
 *.tmp

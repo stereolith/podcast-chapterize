@@ -21,6 +21,16 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 23.08.2019
+* get segment-specific important tokens for each infered topically cohesive segment:
+  * after boundary identification, subdivide transcript by identified boundaries
+  * vectorize segments and apply tfidf-weightig
+  * extract list of tokens with the hightest weight for each segment
+  * use those tokens as chapter names
+* frontend
+  * refactor: move all api calls to resources.js file
+  * add option to search for job by job id input
+
 ### 21.08.2019
 * frontend:
   * add podlove web player to play chapterized episode

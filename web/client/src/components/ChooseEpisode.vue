@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { postJob, getEpisodes } from "../resources";
 
 export default {
   name: 'ChooseEpisode',
@@ -56,15 +56,10 @@ export default {
     }
   },
   methods: {
-    getEpisodes() {
+    fetchEpisodes() {
       this.loading = true
-      const path = 'http://localhost:5000/episodes'
 
-      axios.get(path, {
-        params: {
-          rssurl: this.feedUrl
-        }
-      }).then((res) => {
+      getEpisodes(this.feedUrl).then((res) => {
         this.loading = false
         this.urlError = false
         this.episodesFound = true
@@ -78,17 +73,12 @@ export default {
       });
     },
     startJob () {
-      const path = 'http://localhost:5000/job'
-
-      axios.post(path, {
-          feedUrl: this.feedUrl,
-          episode: this.selectedEpisode
-      }).then((res) => {
+      postJob(this.feedUrl, this.selectedEpisode).then((res) => {
         this.loading = false
         this.urlError = false
         this.episodesFound = true
         this.$store.commit('setId', res.data.jobId)
-        this.$store.commit('setStep', 'JOB RUNNING')
+        this.$store.dispatch('updateStatus')
       })
       .catch((error) => {
         this.postError = true
@@ -98,11 +88,11 @@ export default {
   },
   watch: {
     feedUrl() {
-      this.getEpisodes()
+      this.fetchEpisodes()
     }
   },
   mounted() {
-    this.getEpisodes()
+    this.fetchEpisodes()
   }
 }
 </script>
