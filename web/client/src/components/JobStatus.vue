@@ -45,7 +45,12 @@ export default {
         }
       }).then((res) => {
         this.status = res.data.job.status
-        if(this.status === 'FAILED' || this.status === 'DONE') clearInterval(interval)
+        if(this.status === 'FAILED') {
+          clearInterval(interval)
+        } else if (this.status === 'DONE') {
+          clearInterval(interval)
+          this.$store.commit('setStep', 'DONE')
+        }
         console.log(res.data.job.status)
       })
       .catch((error) => {
@@ -56,7 +61,7 @@ export default {
     },
     startIntervalPolling () {
       clearInterval(interval)
-      interval = setInterval(this.getStatus.bind(this), 1000)
+      interval = setInterval(this.getStatus.bind(this), 10000)
     }
   },
   computed: {

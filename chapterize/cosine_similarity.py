@@ -74,31 +74,30 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
     segmentBoundaryTokens = []
     segmentBoundaryTimes = []
     for minimum in minima:
-        closest = min(utteranceBoundaries, key=lambda x:abs(x-(minimum*windowWidth)))
+        closest = min(utteranceBoundaries, key=lambda x:abs(x-((minimum + 1)*windowWidth)))
         segmentBoundaryTokens.append(flattenTranscript[closest])
         segmentBoundaryTimes.append(flattenTranscript[closest]['startTime'])
         print('for minimum at token {}, closest utterance boundary is at token {}'.format(minimum*windowWidth, closest))
 
     if visual:
-        visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTokens, endTimes)
+        visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTimes, endTimes)
 
     return segmentBoundaryTimes
 
-def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTokens, endTimes): 
+def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTimes, endTimes): 
     endTimes = [time / 60 for time in endTimes]
 
     minimaX = [np.array(endTimes)[minimum] for minimum in minima]
     minimaY = [cosine_similarities[minimum] for minimum in minima]
-
-    segmentBoundaryTokensX = [token['startTime']/60 for token in segmentBoundaryTokens]
 
     fig, ax = plt.subplots(figsize=(13, 6))
 
     plt.plot(endTimes, cosine_similarities_raw, 'lightblue', label='cosine similarity', zorder=0)
     plt.plot(endTimes, cosine_similarities, marker='.', label='smoothed cosine similarity', zorder=1)
     plt.scatter(minimaX, minimaY, c='red', label='local minimum', zorder=2)
-    for x in segmentBoundaryTokensX:
-        plt.axvline(x=x)
+
+    for x in segmentBoundaryTimes:
+        plt.axvline(x=x/60)
 
     ax.legend()
     plt.ylabel('cosine similarity')
