@@ -22,8 +22,6 @@ export default {
     }
   },
   mounted() {
-    const path = 'http://localhost:5000/player-config'
-
     getPlayerConfig(this.$store.state.jobId)
     .then((res) => {
       var config = res.data.config

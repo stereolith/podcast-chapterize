@@ -4,7 +4,7 @@
       <h2 class="block text-lg text-center pt-5">Started chapterizing the episode</h2>
       <h3 class="block font-bold text-center">Check the status here</h3>
       
-      <StatusBar 
+      <status-bar 
         v-if="this.$store.state.jobStatus != 'FAILED'"
         :states="['created', 'transcribing', 'NLP', 'writing chapters to file', 'done']"
         :activeState="statusIndex"
