@@ -115,7 +115,9 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
     for i, time in enumerate(segmentBoundaryTimes):
         chapters.append({'time': time, 'name': " ".join(topTokens[i+1])})
 
+    d3export(endTimes, vectorizer, tfidf, transcriptFile)
 
+    #return [endTimes, vectorizer, tfidf]
     return chapters
 
 def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTimes, endTimes): 
@@ -138,3 +140,26 @@ def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBound
     plt.xlabel('time in minutes')
     plt.show()
 
+def d3export(endTimes, vectorizer, tfidf, transcriptFile):
+
+    import os
+
+    startTimes = endTimes.insert(0, 0)
+    # get top x tokens with the highest tfidf-weighted score 
+    feature_names = np.array(vectorizer.get_feature_names())
+    topTokens = []
+    for i, doc in enumerate(tfidf):
+        tfidf_sorted_indices = np.argsort(doc.toarray()).flatten()[::-1]
+        tfidf_sorted_scores =  np.sort(doc.toarray()).flatten()[::-1]
+        zipped = zip(tfidf_sorted_indices, tfidf_sorted_scores)
+        topTokens.append({
+            'tokens': [{
+                'token': feature_names[token[0]],
+                'score': token[1]
+            } for token in list(zipped)[:10]],
+            'time': endTimes[i]
+        })
+    
+    with open('transcribe/transcripts/' + os.path.basename(transcriptFile) + '-tfidf-tokens.json', 'w') as f:
+        json.dump(topTokens, f)
+    
