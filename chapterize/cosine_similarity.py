@@ -86,7 +86,7 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
         concat_segments.append(concat_segment)
     concat_segments.append(" ".join(processed[minima[-1] + 1:])) # append last section (from last boundary to end)
     
-    concat_vectorizer = TfidfVectorizer(stop_words='english')
+    concat_vectorizer = TfidfVectorizer(max_df=0.7, stop_words='english')
     concat_tfidf = concat_vectorizer.fit_transform(concat_segments)
     
     # get top 6 tokens with the highest tfidf-weighted score for each combined section 
