@@ -42,7 +42,7 @@ def job():
             abort(400)
         else:
             response_object['jobId'] = jobId
-            thread = threading.Thread(target=start_job, args=(jobId, feedUrl, episode,))
+            thread = threading.Thread(target=start_job, args=(jobId, feedUrl, int(episode),))
             thread.start()
     else:
         job = get_job(request.args.get('id'))

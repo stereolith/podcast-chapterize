@@ -1,12 +1,11 @@
-from transcribe.parse_rss import getAudioUrl
-from transcribe.transcribe_google import transcribeAudioFromUrl
-from chapterize.cosine_similarity import cosine_similarity
-from write_chapters import write_chapters
 
+
+import argparse
 import os
 from shutil import copyfile
 import json
 import time
+import uuid
 
 from tinydb import TinyDB, Query
 
@@ -19,6 +18,8 @@ def save_job(_job):
         db.update(_job, Job.id == _job['id'])
     else:
         db.insert(_job)
+    print('new status: ')
+    print(db.search(Job.id == _job['id']))
 
 def get_job(id):
     job = db.search(Job.id == id)
@@ -28,7 +29,12 @@ def get_job(id):
         return job[0]
 
 
-def start_job(jobId, feedUrl, episode=''):
+def start_job(jobId, feedUrl, episode=0):
+    from transcribe.parse_rss import getAudioUrl
+    from transcribe.transcribe_google import transcribeAudioFromUrl
+    from chapterize.cosine_similarity import cosine_similarity
+    from write_chapters import write_chapters
+
     # possible status states: 'CREATED', 'TRANSCRIBING', 'TRANSCRIBED', 'NLP', 'CHAPTER_WRITTEN', 'DONE'
     save_job({'id': jobId, 'status': 'CREATED'})
 
@@ -37,10 +43,7 @@ def start_job(jobId, feedUrl, episode=''):
         save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'Google Cloud credential env var not set'})
         return
 
-    if episode != '':
-        episodeInfo = getAudioUrl(feedUrl, int(episode))
-    else:
-        episodeInfo = getAudioUrl(feedUrl)
+    episodeInfo = getAudioUrl(feedUrl, episode)
 
     if episodeInfo == None:
         save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'could not find RSS feed or episode'})
@@ -121,7 +124,13 @@ def get_player_config(id):
         }
     }
 
-#feedUrl = input('feed url: ')
-#episode = input('episode no (0 for latest): ')
 
-#start_job(feedUrl, episode)
+# if called directly, parse comand line arguments
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', type=str, help='RSS feed URL for the podcast.')
+    parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
+    args = parser.parse_args()
+    
+    jobId = str(uuid.uuid1())
+    start_job(jobId, args.url, args.episode)
