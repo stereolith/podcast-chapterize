@@ -6,7 +6,7 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ### Requirements
 * ffmpeg
-* Python modules
+* Python modules (installable via requirements.txt)
   * feedparser
   * flask
   * flask_cors
