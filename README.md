@@ -21,6 +21,11 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+
+### 11.09.2019
+* Add command line argument parsing for main script
+* ToDo: Make audio files available for download from flask API endpoint
+
 ### 23.08.2019
 * get segment-specific important tokens for each infered topically cohesive segment:
   * after boundary identification, subdivide transcript by identified boundaries

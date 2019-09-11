@@ -77,7 +77,8 @@ def start_job(jobId, feedUrl, episode=0):
     save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
 
     # write chapters to job onject
-    save_job({'id': jobId, 'chapters': chapters})
+    save_job({'id': jobId, 'chaptersFilePath': job['originalAudioFilePath'] + '_chapters.txt', 'chapters': chapters})
+
 
     write_chapters(chapters, job['originalAudioFilePath'])
 
