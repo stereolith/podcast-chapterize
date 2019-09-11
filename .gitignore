@@ -1,5 +1,7 @@
 transcribe/download/*
 web/client/public/episodes/*
+output/*
+output/
 alt/
 .vscode
 *.tmp

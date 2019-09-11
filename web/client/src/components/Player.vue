@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { getPlayerConfig } from '../resources'
+import { getPlayerConfig, getJob, baseDomain } from '../resources'
 
 import '../../public/js/web-player/embed'
 
@@ -25,11 +25,19 @@ export default {
     const path = 'http://localhost:5000/player-config'
 
     getPlayerConfig(this.$store.state.jobId)
-    .then((res) => {
+    .then(res => {
       var config = res.data.config
       console.log(config)
+      config.audio[0].url = baseDomain + '/' + config.audio[0].url
       this.initPlayer(config)
-      this.audioUrl = config.audio[0].url
+    })
+    .catch((error) => {
+      console.error(error)
+    });
+
+    getJob(this.$store.state.jobId)
+    .then(res => {
+      this.audioUrl = baseDomain + '/' + res.data.job.processedAudioFilePath
     })
     .catch((error) => {
       console.error(error)

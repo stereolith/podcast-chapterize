@@ -37,4 +37,4 @@ const getPlayerConfig = (_jobId) => axios.get(
     }
 )
 
-export { getJob, postJob, getEpisodes, getPlayerConfig }
+export { getJob, postJob, getEpisodes, getPlayerConfig, baseDomain }

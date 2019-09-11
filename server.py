@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort, Response
+from flask import Flask, jsonify, request, abort, Response, send_from_directory
 from flask_cors import CORS
 
 import uuid
@@ -46,7 +46,7 @@ def job():
             thread.start()
     else:
         job = get_job(request.args.get('id'))
-        if(job == None):
+        if job == None:
             abort(404)
         else:
             response_object['job'] = job
@@ -63,6 +63,10 @@ def config():
         response_object = {'status': 'success'}
         response_object['config'] = config
         return jsonify(response_object)
+
+@app.route('/output/<path:filename>')
+def download_file(filename):
+    return send_from_directory('output/', filename)
 
 if __name__ == '__main__':
     app.run()

@@ -79,14 +79,14 @@ def start_job(jobId, feedUrl, episode=0):
     # write chapters to job onject
     save_job({'id': jobId, 'chaptersFilePath': job['originalAudioFilePath'] + '_chapters.txt', 'chapters': chapters})
 
+    # copy episode file to output folder
+    processedAudioFilePath = os.path.join('output/', os.path.basename(job['originalAudioFilePath']))
+    copyfile(job['originalAudioFilePath'], processedAudioFilePath )
 
     write_chapters(chapters, job['originalAudioFilePath'])
 
-    # move chapterized episode to public folder
-    publicAudioFilePath = os.path.join('web/client/public/episodes/', os.path.basename(job['originalAudioFilePath']))
-    copyfile(job['originalAudioFilePath'], publicAudioFilePath )
 
-    save_job({'id': jobId, 'publicAudioFilePath': publicAudioFilePath, 'status': 'DONE'})
+    save_job({'id': jobId, 'processedAudioFilePath': processedAudioFilePath, 'status': 'DONE'})
 
 
 def get_player_config(id):
@@ -101,7 +101,9 @@ def get_player_config(id):
         'title': chapter['name']
     } for chapter in job['chapters']]
 
-    fileSize = os.path.getsize(job['publicAudioFilePath'])
+    fileSize = os.path.getsize(job['processedAudioFilePath'])
+
+    print(job['processedAudioFilePath'])
     
     return {
         'title': job['episodeTitle'],
@@ -115,7 +117,7 @@ def get_player_config(id):
         },
         'chapters': chapters,
         'audio': [{
-          'url': job['publicAudioFilePath'].replace('web/client/public', ''),
+          'url': job['processedAudioFilePath'],
           'mimeType': 'audio/mp3',
           'size': fileSize,
           'title': 'Audio MP3'
