@@ -5,11 +5,11 @@
       <h3 class="block font-bold text-center">Check the status here</h3>
       
       <StatusBar 
-        v-if="this.$store.state.jobStatus != 'FAILED'"
+        v-if="this.$store.state.jobStatus != 'FAILED' || isLoading"
         :states="['created', 'transcribing', 'NLP', 'writing chapters to file', 'done']"
         :activeState="statusIndex"
       />
-      <div v-if="this.$store.state.jobStatus === 'FAILED'">There was a problem.</div>
+      <div v-if="this.$store.state.jobStatus === 'FAILED' && !isLoading">There was a problem.</div>
 
     </div>
   </div>
@@ -30,7 +30,7 @@ export default {
   },
   data () {
     return {
-      status: ''      
+      isLoading: true      
     }
   },
   
@@ -38,11 +38,13 @@ export default {
     getStatus () {
 
       this.$store.dispatch('updateStatus')
+      this.isLoading = false
 
     },
     startIntervalPolling () {
       clearInterval(interval)
       interval = setInterval(this.getStatus.bind(this), 10000)
+      setTimeout(this.getStatus.bind(this), 2000)
     }
   },
   computed: {
@@ -63,7 +65,6 @@ export default {
     ...mapState(['jobId', 'jobStatus', 'statusError'])
   },
   mounted () {
-    this.getStatus()
     this.startIntervalPolling()
   },
   watch: {

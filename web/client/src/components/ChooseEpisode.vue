@@ -92,7 +92,7 @@ export default {
     }
   },
   mounted() {
-    this.fetchEpisodes()
+    //this.fetchEpisodes()
   }
 }
 </script>

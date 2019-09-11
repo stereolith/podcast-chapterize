@@ -24,7 +24,7 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ### 11.09.2019
 * Add command line argument parsing for main script
-* ToDo: Make audio files available for download from flask API endpoint
+* created output/ directory that contains processed audio files, transcripts and chapters text files, make available through flask
 
 ### 23.08.2019
 * get segment-specific important tokens for each infered topically cohesive segment:
