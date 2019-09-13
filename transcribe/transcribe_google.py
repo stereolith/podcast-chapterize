@@ -10,7 +10,6 @@ import uuid
 bucket_name = 'transcribe-buffer'
 
 def transcribeAudioFromUrl(url):
-    os.system('export GOOGLE_APPLICATION_CREDENTIALS="/home/lukas/Documents/cred.json"')
     filename = str(uuid.uuid1()) + os.path.basename(url)
     wget.download(url, out='transcribe/download/' + filename)
     rawPath = os.path.join('transcribe/download', filename)

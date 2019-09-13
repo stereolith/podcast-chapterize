@@ -76,23 +76,22 @@ def start_job(jobId, feedUrl, episode=0, keep_temp=False):
 
     save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
 
-    # write chapters to job onject
-    save_job({'id': jobId, 'chaptersFilePath': job['originalAudioFilePath'] + '_chapters.txt', 'chapters': chapters})
+    # write chapters to job object
+    save_job({'id': jobId, 'chapters': chapters})
 
     # copy episode file to output folder
     processedAudioFilePath = os.path.join('output/', os.path.basename(job['originalAudioFilePath']))
     copyfile(job['originalAudioFilePath'], processedAudioFilePath )
 
-    write_chapters(chapters, job['processedAudioFilePath'])
+    write_chapters(chapters, processedAudioFilePath)
 
-
-    save_job({'id': jobId, 'processedAudioFilePath': processedAudioFilePath, 'status': 'DONE'})
+    save_job({'id': jobId, 'chaptersFilePath': processedAudioFilePath + '_chapters.txt', 'processedAudioFilePath': processedAudioFilePath, 'status': 'DONE'})
 
     # remove temp files
     if not keep_temp:
         os.remove(job['originalAudioFilePath'])
         os.remove(job['wavAudioFilePath'])
-        
+
 
 def get_player_config(id):
 

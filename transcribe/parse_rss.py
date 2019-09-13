@@ -14,7 +14,7 @@ def getAudioUrl(feedUrl, episode=0):
         return {
             'episodeUrl': audioUrl,
             'episodeTitle': lastEpisode['title'],
-            'author': lastEpisode['author']
+            'author': lastEpisode['author'] if 'author' in lastEpisode else ""
         }
     except IndexError:
         print('could not find feed')
