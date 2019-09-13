@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def cosine_similarity(transcriptFile, windowWidth=300, maxUtteranceDelta=200, visual=True):
+def cosine_similarity(transcriptFile, windowWidth=200, maxUtteranceDelta=150, visual=True):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -65,10 +65,9 @@ def cosine_similarity(transcriptFile, windowWidth=300, maxUtteranceDelta=200, vi
 
 
     # smooth curve with Savitzky-Golay filter
-    window_length = min(8, len(cosine_similarities))
+    window_length = min(7, len(cosine_similarities))
     if window_length % 2 == 0: window_length -= 1
     cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 4)
-
 
     # calculate local minima
     minima = argrelextrema(cosine_similarities_smooth, np.less)[0]
