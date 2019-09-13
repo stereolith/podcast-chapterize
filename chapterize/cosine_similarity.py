@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
+def cosine_similarity(transcriptFile, windowWidth=300, maxUtteranceDelta=200, visual=True):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -65,7 +65,7 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
 
 
     # smooth curve with Savitzky-Golay filter
-    window_length = min(11, len(cosine_similarities))
+    window_length = min(8, len(cosine_similarities))
     if window_length % 2 == 0: window_length -= 1
     cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 4)
 
@@ -100,11 +100,21 @@ def cosine_similarity(transcriptFile, windowWidth=300, visual=True):
     #find closest utterance boundary for each local minima
     segmentBoundaryTokens = []
     segmentBoundaryTimes = []
+    print(minima)
     for minimum in minima:
         closest = min(utteranceBoundaries, key=lambda x:abs(x-((minimum + 1)*windowWidth)))
-        segmentBoundaryTokens.append(flattenTranscript[closest])
-        segmentBoundaryTimes.append(flattenTranscript[closest]['startTime'])
-        print('for minimum at token {}, closest utterance boundary is at token {}'.format(minimum*windowWidth, closest))
+        print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*windowWidth, closest))
+
+        if abs((minimum+1)*windowWidth - closest) <= maxUtteranceDelta:
+            segmentBoundaryTokens.append(flattenTranscript[closest])
+            segmentBoundaryTimes.append(flattenTranscript[closest]['startTime'])
+        else:
+            print('  closest utterance boundary is too far from minimum boundary (maxUtteranceDelta exceeded), topic boundary set to {}'.format(flattenTranscript[minimum*windowWidth]))
+            segmentBoundaryTokens.append(flattenTranscript[(minimum+1)*windowWidth])
+            segmentBoundaryTimes.append(flattenTranscript[(minimum+1)*windowWidth]['startTime'])
+
+    print(segmentBoundaryTokens)
+
 
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTimes, endTimes)
@@ -131,6 +141,7 @@ def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBound
     plt.scatter(minimaX, minimaY, c='red', label='local minimum', zorder=2)
 
     for x in segmentBoundaryTimes:
+        print(x)
         plt.axvline(x=x/60)
 
     ax.legend()

@@ -21,6 +21,9 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 13.09.2019
+* Refinment of identified boundaries: Add maxUtteranceDelta parameter
+  * when finding closest utterance boundary for each inferred topic boundary, only choose utterance boundary if △ token position of topic boundary and utterance boundary is not larger than maxUtteranceDelta
 
 ### 11.09.2019
 * Add command line argument parsing for main script
