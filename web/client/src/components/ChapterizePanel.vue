@@ -14,7 +14,7 @@
     <Player v-if="$store.state.currentStep === 'DONE'" />
 
     <div
-      class="btn px-2 py-1 my-2 bg-gray-400 hover:bg-gray-500 rounded text-white text-sm font-bold text-center self-center"
+      class="btn px-2 py-1 mt-5 hover:bg-gray-200 border rounded text-gray-600 text-sm font-bold text-center self-center"
       @click="findById = true"
     >
       enter job id manually
@@ -27,7 +27,7 @@
       name=""
       id="customId"
       placeholder="job id"
-      class="bg-gray-300 active:bg-gray-500 p-2" 
+      class="bg-gray-200 active:bg-gray-400 my-3 p-2" 
     >
   </div>
 </div>
@@ -73,3 +73,10 @@ export default {
   }
 }
 </script>
+
+
+<style>
+input::placeholder {
+  color: red;
+}
+</style>

@@ -1,7 +1,16 @@
 <template>
 <div class="flex flex-col">
   <h1 class="text-lg text-center font-bold py-3">Finished!</h1>
-  <a :href="audioUrl" target="_blank" class="px-4 py-2 my-4 bg-pink-400 hover:bg-pink-500 rounded text-white font-bold w-1/2 text-center self-center ">Download the chapterized Episode</a>
+
+  <div class="flex justify-center">
+    <a :href="audioUrl" target="_blank" class="px-4 py-2 my-4 mx-2 bg-gray-500 rounded inline-block text-white font-bold text-center self-center ">
+      Download the chapterized Episode
+    </a>
+    <a :href="audioUrl" target="_blank" class="px-4 py-2 my-4 mx-2 bg-gray-500 rounded inline-block text-white font-bold text-center self-center ">
+      Download chapters text file
+    </a>
+  </div>
+  
   <div id="player">
 
   </div>
@@ -18,7 +27,8 @@ export default {
   name: 'Player',
   data () {
     return {
-      audioUrl: ''
+      audioUrl: '',
+      chapterUrl: ''
     }
   },
   mounted() {
@@ -38,6 +48,7 @@ export default {
     getJob(this.$store.state.jobId)
     .then(res => {
       this.audioUrl = baseDomain + '/' + res.data.job.processedAudioFilePath
+      this.chapterUrl = baseDomain + '/' + res.data.job.chaptersFilePath
     })
     .catch((error) => {
       console.error(error)
