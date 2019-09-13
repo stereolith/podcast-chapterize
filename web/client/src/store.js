@@ -31,13 +31,22 @@ export default new Vuex.Store({
 
         if(res.data.job.status == 'DONE') {
           context.commit('setStep', 'DONE')
-        } else {
+        } else if (res.data.job.status == 'TRANSCRIBING') {
           context.commit('setStep', 'JOB RUNNING')
         }
       })
       .catch((error) => {
-        context.commit('setStep', 'JOB RUNNING')
-        context.commit('setJobStatus', 'FAILED')
+        if (!error.response) {
+          // network error
+          console.log('network error')
+          return
+        }
+        
+        if (error.response.status === 404) {
+          context.commit('setJobStatus', 'NOT_FOUND')
+        } else {
+          context.commit('setJobStatus', 'FAILED')
+        }
       })
     }
   }

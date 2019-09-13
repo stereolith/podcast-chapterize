@@ -6,7 +6,7 @@
     <a :href="audioUrl" target="_blank" class="px-4 py-2 my-4 mx-2 bg-gray-500 rounded inline-block text-white font-bold text-center self-center ">
       Download the chapterized Episode
     </a>
-    <a :href="audioUrl" target="_blank" class="px-4 py-2 my-4 mx-2 bg-gray-500 rounded inline-block text-white font-bold text-center self-center ">
+    <a :href="chapterUrl" target="_blank" class="px-4 py-2 my-4 mx-2 bg-gray-500 rounded inline-block text-white font-bold text-center self-center ">
       Download chapters text file
     </a>
   </div>

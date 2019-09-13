@@ -27,8 +27,9 @@
       name=""
       id="customId"
       placeholder="job id"
-      class="bg-gray-200 active:bg-gray-400 my-3 p-2" 
+      class="bg-gray-200 active:bg-gray-400 mt-3 p-2" 
     >
+    <div class="text-red-600" v-if="customId.length && $store.state.jobStatus === 'NOT_FOUND'">No transcription was found for this ID.</div>
   </div>
 </div>
 </template>

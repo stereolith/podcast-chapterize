@@ -2,15 +2,15 @@
   <div>
     <div class="flex flex-col">
       <h2 class="block text-lg text-center pt-5">Started chapterizing the episode</h2>
-      <h3 class="block font-bold text-center">Check the status here</h3>
+      <h3 class="block text-center">Check the status here:</h3>
       
-      <div v-if="isLoading" class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+      <div v-if="loading" class="lds-ellipsis self-center"><div></div><div></div><div></div><div></div></div>
       <StatusBar 
-        v-if="!isLoading && this.$store.state.jobStatus != 'FAILED'"
+        v-if="this.$store.state.jobStatus != 'FAILED'"
         :states="['created', 'transcribing', 'NLP', 'writing chapters to file', 'done']"
         :activeState="statusIndex"
       />
-      <div v-if="this.$store.state.jobStatus === 'FAILED' && !isLoading">There was a problem.</div>
+      <div v-if="this.$store.state.jobStatus === 'FAILED' && !loading">There was a problem.</div>
 
     </div>
   </div>
@@ -31,7 +31,7 @@ export default {
   },
   data () {
     return {
-      isLoading: true      
+      loading: true      
     }
   },
   
@@ -39,13 +39,13 @@ export default {
     getStatus () {
 
       this.$store.dispatch('updateStatus')
-      this.isLoading = false
+      this.loading = false
 
     },
     startIntervalPolling () {
       clearInterval(interval)
       interval = setInterval(this.getStatus.bind(this), 10000)
-      setTimeout(this.getStatus.bind(this), 2000)
+      setTimeout(() => this.loading = false, 2000)
     }
   },
   computed: {
@@ -67,6 +67,10 @@ export default {
   },
   mounted () {
     this.startIntervalPolling()
+  },
+  beforeDestroy () {
+    clearInterval(interval)
+    console.log('clear')
   },
   watch: {
     jobId () {

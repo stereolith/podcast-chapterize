@@ -85,7 +85,7 @@ def start_job(jobId, feedUrl, episode=0, keep_temp=False):
 
     write_chapters(chapters, processedAudioFilePath)
 
-    save_job({'id': jobId, 'chaptersFilePath': processedAudioFilePath + '_chapters.txt', 'processedAudioFilePath': processedAudioFilePath, 'status': 'DONE'})
+    save_job({'id': jobId, 'chaptersFilePath': processedAudioFilePath.replace('.mp3', '_chapters.txt'), 'processedAudioFilePath': processedAudioFilePath, 'status': 'DONE'})
 
     # remove temp files
     if not keep_temp:

@@ -77,6 +77,7 @@ export default {
         this.loading = false
         this.urlError = false
         this.episodesFound = true
+        this.$store.commit('setStep', 'JOB RUNNING')
         this.$store.commit('setId', res.data.jobId)
         this.$store.dispatch('updateStatus')
       })
@@ -98,7 +99,7 @@ export default {
 </script>
 
 
-<style scoped>
+<style>
 .lds-ellipsis {
   display: inline-block;
   position: relative;
