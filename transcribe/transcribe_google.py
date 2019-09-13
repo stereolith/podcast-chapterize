@@ -5,19 +5,20 @@ from google.cloud.speech import types
 import wget
 import os
 import json
+import uuid
 
 bucket_name = 'transcribe-buffer'
 
-
 def transcribeAudioFromUrl(url):
     os.system('export GOOGLE_APPLICATION_CREDENTIALS="/home/lukas/Documents/cred.json"')
-    filename = os.path.basename(url)
-    wget.download(url, out='transcribe/download')
+    filename = str(uuid.uuid1()) + os.path.basename(url)
+    wget.download(url, out='transcribe/download/' + filename)
     rawPath = os.path.join('transcribe/download', filename)
     print('\ndownloaded file {0}'.format(rawPath))
     path = toWav(rawPath)
     gcsUri = uploadToGoogleCloud(path)
     transcriptFile = transcribeBlob(gcsUri)
+    deleteBlob(gcsUri)
     return {
         'originalAudioFilePath': rawPath,
         'wavAudioFilePath': path,
@@ -27,13 +28,21 @@ def transcribeAudioFromUrl(url):
 
 def uploadToGoogleCloud(filepath):
     print('\nupload file {0} to google cloud bucket'.format(filepath))
-    storage_client = storage.Client.from_service_account_json('/home/lukas/Documents/cred.json')
-
+    storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(os.path.basename(filepath))
     blob.upload_from_filename(filepath)
 
     return 'gs://' + bucket_name + '/' + os.path.basename(filepath)
+
+def deleteBlob(gcs_uri):
+    blob_name = os.path.basename(gcs_uri)
+    print('\ndelete file {0} from google cloud bucket'.format(blob_name))
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+
+    blob.delete()
 
 def toWav(path):
     filename = os.path.splitext(os.path.basename(path))[0]

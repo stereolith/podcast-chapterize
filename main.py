@@ -29,7 +29,7 @@ def get_job(id):
         return job[0]
 
 
-def start_job(jobId, feedUrl, episode=0):
+def start_job(jobId, feedUrl, episode=0, keep_temp=False):
     from transcribe.parse_rss import getAudioUrl
     from transcribe.transcribe_google import transcribeAudioFromUrl
     from chapterize.cosine_similarity import cosine_similarity
@@ -83,11 +83,16 @@ def start_job(jobId, feedUrl, episode=0):
     processedAudioFilePath = os.path.join('output/', os.path.basename(job['originalAudioFilePath']))
     copyfile(job['originalAudioFilePath'], processedAudioFilePath )
 
-    write_chapters(chapters, job['originalAudioFilePath'])
+    write_chapters(chapters, job['processedAudioFilePath'])
 
 
     save_job({'id': jobId, 'processedAudioFilePath': processedAudioFilePath, 'status': 'DONE'})
 
+    # remove temp files
+    if not keep_temp:
+        os.remove(job['originalAudioFilePath'])
+        os.remove(job['wavAudioFilePath'])
+        
 
 def get_player_config(id):
 
