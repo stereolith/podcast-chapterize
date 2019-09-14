@@ -1,7 +1,6 @@
 import nltk
-from nltk.stem import WordNetLemmatizer 
-import nltk
-nltk.download('wordnet')
+
+from chapterize.preprocessor_helper import stem
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
@@ -13,7 +12,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def cosine_similarity(transcriptFile, windowWidth=200, maxUtteranceDelta=150, visual=True):
+def cosine_similarity(transcriptFile, language='en', windowWidth=300, maxUtteranceDelta=200, visual=True):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -31,7 +30,6 @@ def cosine_similarity(transcriptFile, windowWidth=200, maxUtteranceDelta=150, vi
     endTimes = [] # end times of every segment
     utteranceBoundaries = [] # index of last token in each utterance
 
-    lemmatizer = WordNetLemmatizer()
     totalTokenCount = 0
     tokenCount = 0
     processedSection = ''
@@ -44,7 +42,7 @@ def cosine_similarity(transcriptFile, windowWidth=200, maxUtteranceDelta=150, vi
                 endTimes.append(token['startTime'])
                 processedSection = ''
                 tokenCount = 0
-            processedSection += ' ' + lemmatizer.lemmatize(token['word']).lower()
+            processedSection += ' ' + stem(token['word'], language).lower()
         utteranceBoundaries.append(totalTokenCount)
 
     endTimes.pop()

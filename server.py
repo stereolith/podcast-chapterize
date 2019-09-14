@@ -4,7 +4,7 @@ from flask_cors import CORS
 import uuid
 import threading
 
-from transcribe.parse_rss import getEpisodes
+from transcribe.parse_rss import getEpisodes, getLanguage
 from main import start_job, get_job, get_player_config
 
 # configuration
@@ -28,6 +28,16 @@ def episodes():
         response_object = {'status': 'success'}
         response_object['episodes'] = [{'label': episode, 'index': idx} for idx, episode in enumerate(episodes)]
         return jsonify(response_object)
+        
+@app.route('/feed-lang', methods=['GET'])
+def feedLang():
+    rssUrl = request.args.get('rssurl')
+    lang = getLanguage(rssUrl)
+    if lang == 0:
+        abort(404)
+    else:
+        response_object = {'status': 'success', 'language': lang}
+        return jsonify(response_object)
 
 # start transcription job (POST) / get job info (GET)
 @app.route('/job', methods=['GET', 'POST'])
@@ -38,11 +48,12 @@ def job():
         post_data = request.get_json()
         feedUrl = post_data.get('feedUrl')
         episode = post_data.get('episode')
-        if feedUrl == None or episode == None:
+        language = post_data.get('language')
+        if feedUrl == None or episode == None or language == None:
             abort(400)
         else:
             response_object['jobId'] = jobId
-            thread = threading.Thread(target=start_job, args=(jobId, feedUrl, int(episode),))
+            thread = threading.Thread(target=start_job, args=(jobId, feedUrl, language, int(episode),))
             thread.start()
     else:
         job = get_job(request.args.get('id'))

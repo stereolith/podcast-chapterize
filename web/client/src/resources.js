@@ -11,11 +11,12 @@ const getJob = (_jobId) => axios.get(
     }
 )
 
-const postJob = (_feedUrl, _episode) => axios.post(
+const postJob = (_feedUrl, _episode, _language) => axios.post(
     `${baseDomain}/job`,
     {
         feedUrl: _feedUrl,
-        episode: _episode
+        episode: _episode,
+        language: _language
     }
 )
 
@@ -37,4 +38,13 @@ const getPlayerConfig = (_jobId) => axios.get(
     }
 )
 
-export { getJob, postJob, getEpisodes, getPlayerConfig, baseDomain }
+const getLanguage = (_rssUrl) => axios.get(
+    `${baseDomain}/feed-lang`,
+    {
+        params: {
+            rssurl: _rssUrl
+        }
+    }
+)
+
+export { getJob, postJob, getEpisodes, getPlayerConfig, getLanguage, baseDomain }

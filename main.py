@@ -29,7 +29,7 @@ def get_job(id):
         return job[0]
 
 
-def start_job(jobId, feedUrl, episode=0, keep_temp=False):
+def start_job(jobId, feedUrl, language, episode=0, keep_temp=False):
     from transcribe.parse_rss import getAudioUrl
     from transcribe.transcribe_google import transcribeAudioFromUrl
     from chapterize.cosine_similarity import cosine_similarity
@@ -52,6 +52,7 @@ def start_job(jobId, feedUrl, episode=0, keep_temp=False):
     job = {
         'id': jobId,
         'feedUrl': feedUrl,
+        'language': language,
         'episodeUrl': episodeInfo['episodeUrl'],
         'episodeTitle': episodeInfo['episodeTitle'],
         'feedAuthor': episodeInfo['author'],
@@ -59,7 +60,7 @@ def start_job(jobId, feedUrl, episode=0, keep_temp=False):
     }
     save_job(job)
 
-    paths = transcribeAudioFromUrl(episodeInfo['episodeUrl'])
+    paths = transcribeAudioFromUrl(episodeInfo['episodeUrl'], language)
     # paths: [originalAudioPath, wavAudioPath, gcsUri]
 
     job = {
@@ -72,7 +73,7 @@ def start_job(jobId, feedUrl, episode=0, keep_temp=False):
     }
     save_job(job)
 
-    chapters = cosine_similarity(job['transcriptFile'], visual=False)
+    chapters = cosine_similarity(job['transcriptFile'], language=language, visual=False)
 
     save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
 
@@ -136,8 +137,10 @@ def get_player_config(id):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('url', type=str, help='RSS feed URL for the podcast.')
+    parser.add_argument('language', type=str, default='en', choices=['en', 'de'], help='default: "en"; Language of podcast episode')
     parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
+
     args = parser.parse_args()
     
     jobId = str(uuid.uuid1())
-    start_job(jobId, args.url, args.episode)
+    start_job(jobId, args.url, args.language, args.episode)

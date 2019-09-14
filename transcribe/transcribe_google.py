@@ -9,14 +9,14 @@ import uuid
 
 bucket_name = 'transcribe-buffer'
 
-def transcribeAudioFromUrl(url):
+def transcribeAudioFromUrl(url, language):
     filename = str(uuid.uuid1()) + os.path.basename(url)
     wget.download(url, out='transcribe/download/' + filename)
     rawPath = os.path.join('transcribe/download', filename)
     print('\ndownloaded file {0}'.format(rawPath))
     path = toWav(rawPath)
     gcsUri = uploadToGoogleCloud(path)
-    transcriptFile = transcribeBlob(gcsUri)
+    transcriptFile = transcribeBlob(gcsUri, language)
     deleteBlob(gcsUri)
     return {
         'originalAudioFilePath': rawPath,
@@ -51,16 +51,21 @@ def toWav(path):
     os.system(cmd)
     return dest
 
-def transcribeBlob(gcs_uri):
+def transcribeBlob(gcs_uri, language):
     print('\ntranscribe blob {0}'.format(gcs_uri))
     # transcribe audio file with google speech api
     client = speech.SpeechClient()
+
+    languageCodes = {
+        'en': 'en-US',
+        'de': 'de-DE'
+    }
 
     audio = types.RecognitionAudio(uri=gcs_uri)
     config = types.RecognitionConfig(
         encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=16000,
-        language_code='en-US',
+        language_code=languageCodes[language],
         enable_word_time_offsets=True
         )
 

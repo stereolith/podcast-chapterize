@@ -29,3 +29,11 @@ def getEpisodes(feedUrl, last=10):
     except IndexError:
         print('could not find all last episodes')
         return 0
+    
+def getLanguage(feedUrl):
+    try:
+        feed = feedparser.parse(feedUrl)
+        return feed['feed']['language'][0:2]
+    except KeyError:
+        print('could not find feed or language key')
+        return 0

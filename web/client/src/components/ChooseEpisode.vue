@@ -1,24 +1,43 @@
 <template>
   <div class="flex flex-col">
-    <div class="flex flex-col">
+    <div class="flex flex-col mb-5">
       <div class="flex flex-row items-center justify-center border-bottom my-4">
         <div class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200 text-xl mr-2">1</div>
         <h2 class="text-lg text-center">Enter a podcast RSS feed URL</h2>
       </div>
-      <input type="text" v-model="feedUrl" placeholder="feed URL" :class="{'bg-red-200 border-red-200': urlError}" class="w-100 border bg-gray-200 text-gray-700 focus:border-pink-400 py-3 px-4"/>
+      <div class="flex flex-row">
+        <input type="text" v-model="feedUrl" placeholder="feed URL" :class="{'bg-red-200 border-red-200': urlError}" class="flex-1 border border-gray-600 text-gray-700 focus:border-pink-400 py-3 px-4"/>
+      </div>
       <div class="text-red-600" v-if="urlError">No podcast feed was forund for this URL.</div>
       <div v-if="loading" class="lds-ellipsis self-center"><div></div><div></div><div></div><div></div></div>
     </div>
-    <div v-if="episodesFound" class="flex flex-col">
-      <div class="flex flex-row items-center justify-center border-bottom my-4 mt-6">
+
+
+    <div v-if="episodesFound" class="flex flex-col mb-5">
+      <div class="flex flex-row items-center justify-center border-bottom my-4">
         <div class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200 text-xl mr-2">2</div>
+        <h2 class="text-lg text-center">Choose language</h2>
+      </div>
+      <div v-if="languageDetected" class="self-center mb-3 text-pink-500">{{languages[selectedLanguage].label}} detected!</div>
+      <div v-if="unsupportedLanguage" class="self-center my-3">The detected language is not supported.</div>
+      <field-select
+        :values="languages.map((lang) => lang.label)"
+        :active-value="selectedLanguage"
+        @changeLang="lang => { selectedLanguage = lang; languageDetected = false}"
+      />
+    </div>
+
+
+    <div v-if="episodesFound && selectedLanguage != null" class="flex flex-col">
+      <div class="flex flex-row items-center justify-center border-bottom my-4 mt-6">
+        <div class="h-10 w-10 rounded-full flex items-center justify-center bg-gray-200 text-xl mr-2">3</div>
         <h2 class="text-lg text-center">Choose an episode</h2>
       </div>
       <select 
         v-model="selectedEpisode"
         name="episode"
         id="episodeSelect"
-        class="block appearance-none w-full border text-gray-700 py-3 px-4 pr-8 bg-gray-200 focus:border-pink-400 focus:outline-none focus:bg-white focus:border-gray-500">
+        class="block appearance-none w-full border border-gray-600 text-gray-700 py-3 px-4 pr-8 bg-white focus:border-pink-400 focus:outline-none focus:border-gray-500">
         <option
           v-for="episode in episodes"
           :value="episode.index"
@@ -39,14 +58,26 @@
 </template>
 
 <script>
-import { postJob, getEpisodes } from "../resources";
+import { postJob, getEpisodes, getLanguage } from "../resources"
+
+import FieldSelect from "../elements/FieldSelect"
 
 export default {
   name: 'ChooseEpisode',
+  components: {
+    FieldSelect
+  },
   data () {
     return {
       feedUrl: '',
       loading: false,
+      languages: [
+        {code: 'en', label: 'English'},
+        {code: 'de', label: 'German'}
+      ],
+      languageDetected: false,
+      selectedLanguage: null,
+      unsupportedLanguage: false,
       episodesFound: false,
       episodes: [],
       selectedEpisode: 0,
@@ -56,7 +87,22 @@ export default {
     }
   },
   methods: {
-    fetchEpisodes() {
+    fetchLanguage () {
+      this.loading = true
+      getLanguage(this.feedUrl).then((res) => {
+        this.loading = false
+        if (res.data.language === 'en' || res.data.language === 'de') {
+          this.languageDetected = true
+          this.selectedLanguage = res.data.language === 'en' ? 0 : 1
+        } else {
+          this.unsupportedLanguage = true
+        }
+      })
+      .catch((error) => {
+        this.loading = false
+      })
+    },
+    fetchEpisodes () {
       this.loading = true
 
       getEpisodes(this.feedUrl).then((res) => {
@@ -73,7 +119,7 @@ export default {
       });
     },
     startJob () {
-      postJob(this.feedUrl, this.selectedEpisode).then((res) => {
+      postJob(this.feedUrl, this.selectedEpisode, this.languages[this.selectedLanguage].code).then((res) => {
         this.loading = false
         this.urlError = false
         this.episodesFound = true
@@ -88,8 +134,12 @@ export default {
     }
   },
   watch: {
-    feedUrl() {
+    feedUrl () {
+      this.fetchLanguage()
       this.fetchEpisodes()
+    },
+    selectedLanguage (val) {
+      if (val && !this.episodesFound) this.fetchEpisodes()
     }
   },
   mounted() {
