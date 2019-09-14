@@ -21,6 +21,12 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ## Journal
 
+### 14.09.2019
+* Implemented support for german
+  * using stemmer instead of lemmatizer
+  * language choice in CLI (main.py) and web interface
+  * language detection through RSS 'language'-tag
+
 ### 13.09.2019
 * Refinment of identified boundaries: Add maxUtteranceDelta parameter
   * when finding closest utterance boundary for each inferred topic boundary, only choose utterance boundary if △ token position of topic boundary and utterance boundary is not larger than maxUtteranceDelta
