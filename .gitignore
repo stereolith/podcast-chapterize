@@ -7,3 +7,4 @@ alt/
 *.tmp
 *.pyc
 jobs.json
+web/client/.env

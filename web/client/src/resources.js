@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-require('dotenv').config();
-const baseDomain = process.env.HOST
+const baseDomain = process.env.VUE_APP_API_HOST
+console.log(baseDomain)
 
 const getJob = (_jobId) => axios.get(
     `${baseDomain}/job`,
