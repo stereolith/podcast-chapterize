@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const baseDomain = 'http://localhost:5000'
+const baseDomain = process.env.HOST
 
 const getJob = (_jobId) => axios.get(
     `${baseDomain}/job`,
