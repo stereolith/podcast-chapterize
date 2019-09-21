@@ -6,6 +6,7 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ### Requirements
 * ffmpeg
+* matplotlib ([intall via package manager](https://matplotlib.org/3.1.1/users/installing.html#linux-using-your-package-manager))
 * Python modules (installable via requirements.txt)
   * feedparser
   * flask
@@ -14,7 +15,6 @@ This project aims to automatically provide longform audio podcast episodes with 
   * wget
   * nltk
   * sklearn
-  * matplotlib
   * google-cloud-storage
   * google-cloud-speech
   * eyed3
