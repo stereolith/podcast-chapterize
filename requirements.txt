@@ -23,7 +23,6 @@ kiwisolver==1.1.0
 MarkupSafe==1.1.1
 nltk==3.4.5
 numpy==1.17.2
-pkg-resources==0.0.0
 protobuf==3.9.1
 pyasn1==0.4.7
 pyasn1-modules==0.2.6
