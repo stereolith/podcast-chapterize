@@ -1,5 +1,6 @@
 import axios from 'axios'
 
+require('dotenv').config();
 const baseDomain = process.env.HOST
 
 const getJob = (_jobId) => axios.get(
