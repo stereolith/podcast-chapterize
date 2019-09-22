@@ -11,6 +11,8 @@ bucket_name = 'transcribe-buffer'
 
 def transcribeAudioFromUrl(url, language):
     filename = str(uuid.uuid1()) + os.path.basename(url)
+    if not os.path.exists('transcribe/download'):
+        os.makedirs('transcribe/download')
     wget.download(url, out='transcribe/download/' + filename)
     rawPath = os.path.join('transcribe/download', filename)
     print('\ndownloaded file {0}'.format(rawPath))
