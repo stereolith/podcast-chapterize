@@ -88,6 +88,9 @@ def transcribeBlob(gcs_uri, language):
             words.append(w)
         utterances.append(words)
         words = []
+
+    if not os.path.exists('output'):
+        os.makedirs('output')
         
     with open('output/' + os.path.basename(gcs_uri) + '_transcript.json', 'w') as f:
         json.dump(utterances, f)
