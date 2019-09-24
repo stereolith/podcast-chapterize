@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 import json
 
-def cosine_similarity(transcriptFile, language='en', windowWidth=300, maxUtteranceDelta=200, visual=True):
+def cosine_similarity(transcriptFile, language='en', windowWidth=250, maxUtteranceDelta=150, visual=True):
     try:
         with open(transcriptFile, "r") as f:
             transcript = json.loads(f.read())
@@ -49,7 +49,7 @@ def cosine_similarity(transcriptFile, language='en', windowWidth=300, maxUtteran
 
 
     # vectorize, remove of stopwords and weigh by tf-idf
-    vectorizer = TfidfVectorizer(min_df=4, max_df=0.95, stop_words='english')
+    vectorizer = TfidfVectorizer(min_df=4, max_df=0.95)
     tfidf = vectorizer.fit_transform(processed)
     # tfidf matrix: rows: documents, columns: words
 
@@ -63,9 +63,9 @@ def cosine_similarity(transcriptFile, language='en', windowWidth=300, maxUtteran
 
 
     # smooth curve with Savitzky-Golay filter
-    window_length = min(7, len(cosine_similarities))
+    window_length = min(11, len(cosine_similarities))
     if window_length % 2 == 0: window_length -= 1
-    cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 4)
+    cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 5)
 
     # calculate local minima
     minima = argrelextrema(cosine_similarities_smooth, np.less)[0]
@@ -83,7 +83,7 @@ def cosine_similarity(transcriptFile, language='en', windowWidth=300, maxUtteran
         concat_segments.append(concat_segment)
     concat_segments.append(" ".join(processed[minima[-1] + 1:])) # append last section (from last boundary to end)
     
-    concat_vectorizer = TfidfVectorizer(max_df=0.7, stop_words='english')
+    concat_vectorizer = TfidfVectorizer(max_df=0.7)
     concat_tfidf = concat_vectorizer.fit_transform(concat_segments)
     
     # get top 6 tokens with the highest tfidf-weighted score for each combined section 
