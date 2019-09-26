@@ -1,5 +1,3 @@
-
-
 import argparse
 import os
 from shutil import copyfile
@@ -137,7 +135,7 @@ def get_player_config(id):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('url', type=str, help='RSS feed URL for the podcast.')
-    parser.add_argument('language', type=str, default='en', choices=['en', 'de'], help='default: "en"; Language of podcast episode')
+    parser.add_argument('language', type=str, choices=['en', 'de'], help='Language of podcast episode')
     parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
 
     args = parser.parse_args()

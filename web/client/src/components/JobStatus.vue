@@ -70,7 +70,6 @@ export default {
   },
   beforeDestroy () {
     clearInterval(interval)
-    console.log('clear')
   },
   watch: {
     jobId () {

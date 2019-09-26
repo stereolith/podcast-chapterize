@@ -8,7 +8,6 @@ from sklearn.metrics.pairwise import linear_kernel
 import numpy as np
 from scipy.signal import savgol_filter
 from scipy.signal import argrelextrema
-import matplotlib.pyplot as plt
 
 import json
 
@@ -97,7 +96,6 @@ def cosine_similarity(transcriptFile, language='en', windowWidth=250, maxUtteran
     #find closest utterance boundary for each local minima
     segmentBoundaryTokens = []
     segmentBoundaryTimes = []
-    print(minima)
     for minimum in minima:
         closest = min(utteranceBoundaries, key=lambda x:abs(x-((minimum + 1)*windowWidth)))
         print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*windowWidth, closest))
@@ -110,22 +108,22 @@ def cosine_similarity(transcriptFile, language='en', windowWidth=250, maxUtteran
             segmentBoundaryTokens.append(flattenTranscript[(minimum+1)*windowWidth])
             segmentBoundaryTimes.append(flattenTranscript[(minimum+1)*windowWidth]['startTime'])
 
-    print(segmentBoundaryTokens)
-
+    print("Segment boundary tokens:\n", segmentBoundaryTokens)
 
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTimes, endTimes)
-
 
     # prepare chapter/ name list
     chapters = [{'time': 0, 'name': " ".join(topTokens[0])}]
     for i, time in enumerate(segmentBoundaryTimes):
         chapters.append({'time': time, 'name': " ".join(topTokens[i+1])})
 
-
     return chapters
 
+
 def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTimes, endTimes): 
+    import matplotlib.pyplot as plt
+
     endTimes = [time / 60 for time in endTimes]
 
     minimaX = [np.array(endTimes)[minimum] for minimum in minima]

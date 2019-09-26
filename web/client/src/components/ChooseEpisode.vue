@@ -52,7 +52,7 @@
       @click="startJob"
       class="px-4 py-2 mt-8 bg-pink-400 hover:bg-pink-500 rounded text-white font-bold w-1/3 self-center"
       :class="{'bg-gray-400 cursor-not-allowed': jobStarted}"
-    >Start chapterize episode</button> 
+    >Start chapterization</button> 
     <div v-if="postError">There was an error when trying to start the chapterization.</div>
   </div>
 </template>

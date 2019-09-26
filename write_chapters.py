@@ -16,10 +16,9 @@ def write_chapters(chapters, audioFile):
             out += '{} {}\n'.format(timeStr, chapter['name'])
         f.write(out)
 
+    # write chapters to mp3 metadata
     tag = Tag()
     tag.parse(audioFile)
-
-    print(tag)
 
     chapterIds = []
     for i, chapter in enumerate(chapters):

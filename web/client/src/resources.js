@@ -1,7 +1,6 @@
 import axios from 'axios'
 
 const baseDomain = process.env.VUE_APP_API_HOST
-console.log(baseDomain)
 
 const getJob = (_jobId) => axios.get(
     `${baseDomain}/job`,

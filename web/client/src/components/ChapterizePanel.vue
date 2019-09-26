@@ -13,22 +13,29 @@
     <JobStatus v-if="$store.state.currentStep === 'JOB RUNNING'" />
     <Player v-if="$store.state.currentStep === 'DONE'" />
 
+    <div 
+      v-if="$store.state.currentStep === 'JOB RUNNING' || $store.state.currentStep === 'DONE'"
+      class="text-center"
+    >
+      The unique ID of this job is <span class="bg-gray-300">{{$store.state.jobId}}</span></div>
     <div
       class="btn px-2 py-1 mt-5 hover:bg-gray-200 border rounded text-gray-600 text-sm font-bold text-center self-center"
       @click="findById = true"
     >
-      enter job id manually
-    </div>   
-    <input
-      v-if="findById"
-      v-model="customId"
-      @change="handleIdInput"
-      type="text"
-      name=""
-      id="customId"
-      placeholder="job id"
-      class="bg-gray-200 active:bg-gray-400 mt-3 p-2" 
-    >
+      find job by ID
+    </div>
+    <div v-if="findById" class="mt-3 flex items-center">
+      <input
+        v-model="customId"
+        @change="handleIdInput"
+        type="text"
+        name=""
+        id="customId"
+        placeholder="job id"
+        class="flex-1 bg-gray-200 active:bg-gray-400 p-2" 
+      >
+      <button @click="handleIdInput" class="btn px-3 text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></button>
+    </div>
     <div class="text-red-600" v-if="customId.length && $store.state.jobStatus === 'NOT_FOUND'">No transcription was found for this ID.</div>
   </div>
 </div>

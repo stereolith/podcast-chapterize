@@ -17,7 +17,6 @@ store.watch((state) => state.jobId, (_id) => {
 })
 if (localStorage.getItem('jobId')) {
   store.commit('setId', localStorage.getItem('jobId'))
-  console.log('commit')
 }
 
 new Vue({

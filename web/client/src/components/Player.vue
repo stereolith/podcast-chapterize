@@ -37,7 +37,6 @@ export default {
     getPlayerConfig(this.$store.state.jobId)
     .then(res => {
       var config = res.data.config
-      console.log(config)
       config.audio[0].url = baseDomain + '/' + config.audio[0].url
       this.initPlayer(config)
     })
