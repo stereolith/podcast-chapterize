@@ -8,3 +8,4 @@ alt/
 *.pyc
 jobs.json
 web/client/.env
+venv/

@@ -25,7 +25,13 @@ This program can be used in the command line or as an API with a web interface.
 
 _API_:
 
-* Run server.py: `python3 server.py`
+* Create python3 venv: `python3 -m venv venv`
+* Activate venv: `source venv/bin/activate`
+* Set environment variables:
+    * server script location: `export FLASK_APP=server.py`
+    * (optional) specify server IP: `export FLASK_RUN_HOST=0.0.0.0`
+    * (optional) specify server port: `export FLASK_RUN_PORT=5000`
+* run API server with `flask run`
 
 _Frontend_:
 
