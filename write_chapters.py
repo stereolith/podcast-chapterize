@@ -4,7 +4,7 @@ import os
 import time
 
 
-def write_chapters(chapters, audioFile):
+def writeChapters(chapters, audioFile):
 
     # write chapters to text file
     folder = os.path.dirname(audioFile)

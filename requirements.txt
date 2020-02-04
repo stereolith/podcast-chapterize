@@ -3,6 +3,7 @@ certifi==2019.6.16
 chardet==3.0.4
 Click==7.0
 cycler==0.10.0
+decorator==4.4.1
 eyeD3==0.8.10
 feedparser==5.2.1
 Flask==1.1.1
@@ -24,6 +25,7 @@ MarkupSafe==1.1.1
 matplotlib==3.0.3
 nltk==3.4.5
 numpy==1.17.2
+pkg-resources==0.0.0
 protobuf==3.9.1
 pyasn1==0.4.7
 pyasn1-modules==0.2.6
@@ -39,5 +41,6 @@ six==1.12.0
 sklearn==0.0
 tinydb==3.13.0
 urllib3==1.25.3
+validators==0.14.2
 Werkzeug==0.15.6
 wget==3.2
