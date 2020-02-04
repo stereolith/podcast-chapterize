@@ -8,6 +8,37 @@ This project aims to automatically provide longform audio podcast episodes with 
 * ffmpeg
 * matplotlib ([intall via package manager](https://matplotlib.org/3.1.1/users/installing.html#linux-using-your-package-manager))
 * Python module requirements (installable via requirements.txt)
+* node.js
+* npm
+
+### Running the project
+This program can be used in the command line or as an API with a web interface.
+
+#### CLI
+* Run main script 'main.py': `python3 main.py`
+	* `python3 main.py -h` for help
+	* first argument: URL to chapterize
+	* second argument: language ('en' for English, 'de' for German)
+	* optional argument '-e' or '--episode' to specify episode number, where 0 is lastest and 1 is penultimate etc.
+
+#### Web interface
+
+_API_:
+
+* Run server.py: `python3 server.py`
+
+_Frontend_:
+
+* Serve frontend files 'web/client/dist' on web server
+
+
+__If the server is not running on the same machine:__
+
+1. specify API host in web/client/.env
+2. cd into 'web/client'
+3. install dependencies with `npm install`
+4. build files with `npm run build`
+5. serve built files from (web/client/dist) on web server
 
 
 ## Journal

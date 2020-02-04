@@ -134,7 +134,7 @@ def get_player_config(id):
 # if called directly, parse comand line arguments
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('url', type=str, help='RSS feed URL for the podcast (in single quotes)')
+    parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
     parser.add_argument('language', type=str, choices=['en', 'de'], help='Language of podcast episode')
     parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
 
