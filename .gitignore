@@ -9,3 +9,4 @@ alt/
 jobs.json
 web/client/.env
 venv/
+__pycache__
