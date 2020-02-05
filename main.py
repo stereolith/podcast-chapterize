@@ -11,6 +11,7 @@ from tinydb import TinyDB, Query
 db = TinyDB('jobs.json')
 Job = Query()
 
+
 def save_job(_job):
     if len(db.search(Job.id == _job['id'])) != 0:
         db.update(_job, Job.id == _job['id'])
@@ -26,52 +27,51 @@ def get_job(id):
     else:
         return job[0]
 
+def create_job(feedUrl, language, episode=0, keep_temp=False):
+    jobId = str(uuid.uuid1())
 
-def start_job(jobId, feedUrl, language, episode=0, keep_temp=False):
+    # possible status states: 'CREATED', 'TRANSCRIBING', 'TRANSCRIBED', 'NLP', 'CHAPTER_WRITTEN', 'DONE'
+    save_job({'id': jobId, 'status': 'CREATED'})
+
+    job = {
+        'id': jobId,
+        'feedUrl': feedUrl,
+        'language': language,
+        'status': 'TRANSCRIBING'
+    }
+    save_job(job)
+
+    return job['id']
+
+def start_job(jobId):
     from transcribe.parse_rss import get_audio_url
     from transcribe.transcribe_google import transcribeAudioFromUrl
     from chapterize.cosine_similarity import cosine_similarity
     from write_chapters import write_chapters
-
-    # possible status states: 'CREATED', 'TRANSCRIBING', 'TRANSCRIBED', 'NLP', 'CHAPTER_WRITTEN', 'DONE'
-    save_job({'id': jobId, 'status': 'CREATED'})
 
     # check if google cloud credentials env var is set
     if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS') == None:
         save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'Google Cloud credential env var not set'})
         return
 
-    episodeInfo = get_audio_url(feedUrl, episode)
+    job = get_job(jobId)
+
+    episodeInfo = get_audio_url(job['feedUrl'], job['episode'])
 
     if episodeInfo == None:
         save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'could not find RSS feed or episode'})
         return
 
-    job = {
-        'id': jobId,
-        'feedUrl': feedUrl,
-        'language': language,
-        'episodeUrl': episodeInfo['episodeUrl'],
-        'episodeTitle': episodeInfo['episodeTitle'],
-        'feedAuthor': episodeInfo['author'],
-        'status': 'TRANSCRIBING'
-    }
+    job['episodeUrl'] = episodeInfo['episodeUrl']
+    job['episodeTitle'] = episodeInfo['episodeTitle']
+    job['feedAuthor'] = episodeInfo['author']
+
     save_job(job)
 
-    paths = transcribeAudioFromUrl(episodeInfo['episodeUrl'], language)
+    paths = transcribeAudioFromUrl(job['episodeInfo']['episodeUrl'], joblanguage)
     # paths: [originalAudioPath, wavAudioPath, gcsUri]
 
-    job = {
-        'id': jobId,
-        'originalAudioFilePath': paths['originalAudioFilePath'],
-        'wavAudioFilePath': paths['wavAudioFilePath'],
-        'transcriptFile': paths['transcriptFile'],
-        'gcsUri': paths['gcsUri'],
-        'status': 'NLP'
-    }
-    save_job(job)
-
-    chapters = cosine_similarity(job['transcriptFile'], language=language, visual=False)
+    chapters = cosine_similarity(job['transcriptFile'], language=job['language'], visual=False)
 
     save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
 

@@ -3,10 +3,9 @@
 
 from flask import Flask, jsonify, request, Blueprint
 import validators
-import uuid
 import threading
 
-from main import start_job, get_job
+from main import create_job, start_job, get_job
 
 core = Blueprint('core',  __name__)
 
@@ -14,7 +13,6 @@ core = Blueprint('core',  __name__)
 @core.route('/job', methods=['GET', 'POST'])
 def job():
     if request.method == 'POST':
-        jobId = str(uuid.uuid1())
         post_data = request.get_json()
         if not post_data:
             return response_json('failure', {'post_data': 'Could not get POST data'})
@@ -33,7 +31,8 @@ def job():
                 data['language'] = 'language is required'
             return response_json('failure', data)
         else:
-            thread = threading.Thread(target=start_job, args=(jobId, feedUrl, language, int(episode),))
+            jobId = create_job(feedUrl, language, int(episode))
+            thread = threading.Thread(target=start_job, args=(jobId,))
             thread.start()
             return response_json('success', {'jobId': jobId})
     else:
