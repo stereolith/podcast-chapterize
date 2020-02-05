@@ -27,7 +27,7 @@ def episodes():
     episodes = getEpisodes(rssUrl)
 
     if episodes == 0 or len(episodes) == 0:
-        return response_json('error', {'rssUrl': 'Could not find RSS feed'})
+        return response_json('error', 'Could not find RSS feed')
     else:
         return response_json('success', {
             'episodes': [{'label': episode, 'index': idx} for idx, episode in enumerate(episodes)]
@@ -62,13 +62,13 @@ def job():
         episode = post_data.get('episode')
         language = post_data.get('language')
 
-        if not all([feedUrl, episode, language]):
+        if None in [feedUrl, episode, language]:
             data = {}
-            if not feedUrl:
+            if feedUrl is None:
                 data['feedUrl'] = 'feedUrl is required'
-            if not episode:
+            if episode  is None:
                 data['episode'] = 'episode is required'
-            if not language:
+            if language is None:
                 data['language'] = 'language is required'
             return response_json('failure', data)
         else:

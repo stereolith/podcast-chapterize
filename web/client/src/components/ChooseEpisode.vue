@@ -8,7 +8,7 @@
       <div class="flex flex-row">
         <input type="text" v-model="feedUrl" placeholder="feed URL" :class="{'bg-red-200 border-red-200': urlError}" class="flex-1 border border-gray-600 text-gray-700 focus:border-pink-400 py-3 px-4"/>
       </div>
-      <div class="text-red-600" v-if="urlError">No podcast feed was forund for this URL.</div>
+      <div class="text-red-600" v-if="urlError">{{urlErrorMessage}}</div>
       <div v-if="loading" class="lds-ellipsis self-center"><div></div><div></div><div></div><div></div></div>
     </div>
 
@@ -82,6 +82,7 @@ export default {
       episodes: [],
       selectedEpisode: 0,
       urlError: false,
+      urlErrorMessage: '',
       jobStarted: false,
       postError: false
     }
@@ -91,11 +92,9 @@ export default {
       this.loading = true
       getLanguage(this.feedUrl).then((res) => {
         this.loading = false
-        if (res.data.language === 'en' || res.data.language === 'de') {
-          this.languageDetected = true
-          this.selectedLanguage = res.data.language === 'en' ? 0 : 1
-        } else {
-          this.unsupportedLanguage = true
+        this.detectedLanguage = res.data.data.language
+        if (this.languages.map(lang => lang.code).includes(this.detectedLanguage)) {
+            this.selectedLanguage = res.data.data.language === 'en' ? 0 : 1
         }
       })
       .catch((error) => {
@@ -106,16 +105,26 @@ export default {
       this.loading = true
 
       getEpisodes(this.feedUrl).then((res) => {
-        this.loading = false
-        this.urlError = false
-        this.episodesFound = true
-        this.episodes = res.data.episodes
+        if (res.data.status == 'failure') {
+            this.urlError = true
+            this.episodesFound = false
+            this.urlErrorMessage = res.data.data.rssUrl
+        } else if (res.data.status == 'error') {
+            this.episodesFound = false
+            this.urlError = true;
+            this.urlErrorMessage = res.data.message
+        } else {
+            this.loading = false
+            this.urlError = false
+            this.episodesFound = true
+            this.episodes = res.data.data.episodes
+        }
       })
       .catch((error) => {
         this.loading = false
         this.episodesFound = false
         this.urlError = true
-        console.error(error)
+        this.urlErrorMessage = 'Could not connect to API'
       });
     },
     startJob () {
@@ -124,7 +133,7 @@ export default {
         this.urlError = false
         this.episodesFound = true
         this.$store.commit('setStep', 'JOB RUNNING')
-        this.$store.commit('setId', res.data.jobId)
+        this.$store.commit('setId', res.data.data.jobId)
         this.$store.dispatch('updateStatus')
       })
       .catch((error) => {

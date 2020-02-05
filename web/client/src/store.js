@@ -27,11 +27,11 @@ export default new Vuex.Store({
     updateStatus(context) {
       getJob(this.state.jobId)
       .then((res) => {
-        context.commit('setJobStatus', res.data.job.status)
+        context.commit('setJobStatus', res.data.data.job.status)
 
-        if(res.data.job.status == 'DONE') {
+        if(res.data.data.job.status == 'DONE') {
           context.commit('setStep', 'DONE')
-        } else if (res.data.job.status == 'TRANSCRIBING') {
+        } else if (res.data.data.job.status == 'TRANSCRIBING') {
           context.commit('setStep', 'JOB RUNNING')
         }
       })
