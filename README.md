@@ -27,11 +27,8 @@ _API_:
 
 * Create python3 venv: `python3 -m venv venv`
 * Activate venv: `source venv/bin/activate`
-* Set environment variables:
-    * server script location: `export FLASK_APP=server.py`
-    * (optional) specify server IP: `export FLASK_RUN_HOST=0.0.0.0`
-    * (optional) specify server port: `export FLASK_RUN_PORT=5000`
-* run API server with `flask run`
+* (optional) Set environment variables for IP address and Port in the ´.flaskenv´ file
+* start API server with `flask run`
 
 _Frontend_:
 

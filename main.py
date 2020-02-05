@@ -28,7 +28,7 @@ def get_job(id):
 
 
 def start_job(jobId, feedUrl, language, episode=0, keep_temp=False):
-    from transcribe.parse_rss import getAudioUrl
+    from transcribe.parse_rss import get_audio_url
     from transcribe.transcribe_google import transcribeAudioFromUrl
     from chapterize.cosine_similarity import cosine_similarity
     from write_chapters import write_chapters
@@ -41,7 +41,7 @@ def start_job(jobId, feedUrl, language, episode=0, keep_temp=False):
         save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'Google Cloud credential env var not set'})
         return
 
-    episodeInfo = getAudioUrl(feedUrl, episode)
+    episodeInfo = get_audio_url(feedUrl, episode)
 
     if episodeInfo == None:
         save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'could not find RSS feed or episode'})

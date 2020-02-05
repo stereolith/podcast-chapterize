@@ -1,6 +1,6 @@
 import feedparser
 
-def getAudioUrl(feedUrl, episode=0):
+def get_audio_url(feedUrl, episode=0):
     feed = feedparser.parse(feedUrl)
     try:
         lastEpisode = feed['entries'][episode]
@@ -20,7 +20,7 @@ def getAudioUrl(feedUrl, episode=0):
         print('could not find feed')
         return None
 
-def getEpisodes(feedUrl, last=10):
+def get_episodes(feedUrl, last=10):
     try:
         feed = feedparser.parse(feedUrl)
         episodes = feed['entries'][:last]
@@ -30,7 +30,7 @@ def getEpisodes(feedUrl, last=10):
         print('could not find all last episodes')
         return 0
     
-def getLanguage(feedUrl):
+def get_language(feedUrl):
     try:
         feed = feedparser.parse(feedUrl)
         return feed['feed']['language'][0:2]
