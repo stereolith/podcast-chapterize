@@ -37,6 +37,7 @@ def create_job(feedUrl, language, episode=0, keep_temp=False):
         'id': jobId,
         'feedUrl': feedUrl,
         'language': language,
+        'episode': episode,
         'status': 'TRANSCRIBING'
     }
     save_job(job)
@@ -62,13 +63,11 @@ def start_job(jobId):
         save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'could not find RSS feed or episode'})
         return
 
-    job['episodeUrl'] = episodeInfo['episodeUrl']
-    job['episodeTitle'] = episodeInfo['episodeTitle']
-    job['feedAuthor'] = episodeInfo['author']
+    job['episodeInfo'] = episodeInfo
 
     save_job(job)
 
-    paths = transcribeAudioFromUrl(job['episodeInfo']['episodeUrl'], joblanguage)
+    paths = transcribeAudioFromUrl(job['episodeInfo']['episodeUrl'], job['language'])
     # paths: [originalAudioPath, wavAudioPath, gcsUri]
 
     chapters = cosine_similarity(job['transcriptFile'], language=job['language'], visual=False)
