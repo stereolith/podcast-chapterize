@@ -4,6 +4,7 @@ from shutil import copyfile
 import json
 import time
 import uuid
+import wget
 
 from tinydb import TinyDB, Query
 
@@ -46,14 +47,12 @@ def create_job(feedUrl, language, episode=0, keep_temp=False):
 
 def start_job(jobId):
     from transcribe.parse_rss import get_audio_url
-    from transcribe.transcribe_google import transcribeAudioFromUrl
+    from transcribe.SpeechToTextModules.GoogleSpeechAPI import GoogleSpeechToText
     from chapterize.cosine_similarity import cosine_similarity
     from write_chapters import write_chapters
 
-    # check if google cloud credentials env var is set
-    if os.environ.get('GOOGLE_APPLICATION_CREDENTIALS') == None:
-        save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'Google Cloud credential env var not set'})
-        return
+    # init Google Speech API
+    stt = GoogleSpeechToText('/home/lukas/Documents/cred.json', 'transcribe-buffer')
 
     job = get_job(jobId)
 
@@ -67,8 +66,11 @@ def start_job(jobId):
 
     save_job(job)
 
-    paths = transcribeAudioFromUrl(job['episodeInfo']['episodeUrl'], job['language'])
-    # paths: [originalAudioPath, wavAudioPath, gcsUri]
+    # download audio
+    path = download_audio(job['episodeInfo']['episodeUrl'])
+    
+    # transcribe
+    tokens, boundaries = stt.transcribe(path, job['language'])
 
     chapters = cosine_similarity(job['transcriptFile'], language=job['language'], visual=False)
 
@@ -130,6 +132,16 @@ def get_player_config(id):
     }
 
 
+def download_audio(url):
+    filename = str(uuid.uuid1()) + os.path.basename(url)
+    if not os.path.exists('transcribe/download'):
+        os.makedirs('transcribe/download')
+    wget.download(url, out='transcribe/download/' + filename)
+    path = os.path.join('transcribe/download', filename)
+    print('\ndownloaded file {0}'.format(path))
+    return path
+
+
 # if called directly, parse comand line arguments
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -139,5 +151,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     
-    jobId = str(uuid.uuid1())
-    start_job(jobId, args.url, args.language, args.episode)
+    jobId = create_job(args.url, args.language, args.episode)
+    start_job(jobId)
+    

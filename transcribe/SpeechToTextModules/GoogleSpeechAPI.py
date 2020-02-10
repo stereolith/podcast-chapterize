@@ -1,23 +1,33 @@
+from transcribe.SpeechToTextModules.SpeechToTextModule import SpeechToTextModule, TranscriptToken
+
 from google.cloud import storage
 from google.cloud import speech
 from google.cloud.speech import enums
 from google.cloud.speech import types
-import wget
 import os
 import json
-import uuid
+
+bucket_name = 'transcribe-buffer'
+
+class GoogleSpeechToText(SpeechToTextModule):
+    def __init__(self, credential_file, bucket_name):
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credential_file
+
+        self.bucket_name = bucket_name
+
+        super().__init__()
+
+    def transcribe(self, filepath, language):
+        path = toWav(filepath)
+        gcsUri = uploadToGoogleCloud(path)
+        tokens, boundaries = transcribeBlob(gcsUri, language)
+        deleteBlob(gcsUri)
+        return token, boundaries
+
+# Helper functions
 
 def transcribeAudioFromUrl(url, language):
-    filename = str(uuid.uuid1()) + os.path.basename(url)
-    if not os.path.exists('transcribe/download'):
-        os.makedirs('transcribe/download')
-    wget.download(url, out='transcribe/download/' + filename)
-    rawPath = os.path.join('transcribe/download', filename)
-    print('\ndownloaded file {0}'.format(rawPath))
-    path = toWav(rawPath)
-    gcsUri = uploadToGoogleCloud(path)
-    transcriptFile = transcribeBlob(gcsUri, language)
-    deleteBlob(gcsUri)
+    
     return {
         'originalAudioFilePath': rawPath,
         'wavAudioFilePath': path,
@@ -74,23 +84,22 @@ def transcribeBlob(gcs_uri, language):
     print('Waiting for transcription to complete...')
     response = operation.result(timeout=10000)
 
-    utterances = []
-    words = []
+    tokens = []
+    utterance_boundaries = []
     for result in response.results:
         print(u'Transcript: {}'.format(result.alternatives[0].transcript))
         print('Confidence: {}'.format(result.alternatives[0].confidence))
         for word in result.alternatives[0].words:
-            w = {}
-            w['word'] = word.word
-            w['startTime'] = word.start_time.seconds + (word.start_time.nanos / 1000000000)
-            words.append(w)
-        utterances.append(words)
-        words = []
-
-    if not os.path.exists('output'):
-        os.makedirs('output')
+            w = TranscriptToken(word.word, word.start_time.seconds + (word.start_time.nanos / 1000000000))
+            tokens.append(w)
+        utterance_boundaries.append(len(tokens))
         
-    with open('output/' + os.path.basename(gcs_uri) + '_transcript.json', 'w') as f:
-        json.dump(utterances, f)
+    return tokens, utterance_boundaries
 
-    return 'output/' + os.path.basename(gcs_uri) + '_transcript.json'
+    # if not os.path.exists('output'):
+    #     os.makedirs('output')
+        
+    # with open('output/' + os.path.basename(gcs_uri) + '_transcript.json', 'w') as f:
+    #     json.dump(utterances, f)
+
+    # return 'output/' + os.path.basename(gcs_uri) + '_transcript.json'
