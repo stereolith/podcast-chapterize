@@ -72,7 +72,15 @@ def start_job(jobId):
     # transcribe
     tokens, boundaries = stt.transcribe(path, job['language'])
 
-    chapters = cosine_similarity(job['transcriptFile'], language=job['language'], visual=False)
+    # save transcript to file
+    job['transcriptFile'] = 'output/' + os.path.basename(job['episodeInfo']['episodeUrl']) + '_transcript.json'
+    with open(job['transcriptFile'], 'w') as f:
+        json.dump({
+            'boundaries': boundaries,
+            'tokens': [token.to_dict() for token in tokens]
+        }, f)
+
+    chapters = cosine_similarity(tokens, boundaries, language=job['language'], visual=False)
 
     save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
 

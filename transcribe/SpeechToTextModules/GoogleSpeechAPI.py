@@ -22,7 +22,7 @@ class GoogleSpeechToText(SpeechToTextModule):
         gcsUri = uploadToGoogleCloud(path)
         tokens, boundaries = transcribeBlob(gcsUri, language)
         deleteBlob(gcsUri)
-        return token, boundaries
+        return tokens, boundaries
 
 # Helper functions
 

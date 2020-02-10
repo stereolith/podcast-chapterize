@@ -11,38 +11,27 @@ from scipy.signal import argrelextrema
 
 import json
 
-def cosine_similarity(transcriptFile, language='en', windowWidth=250, maxUtteranceDelta=150, visual=True):
-    try:
-        with open(transcriptFile, "r") as f:
-            transcript = json.loads(f.read())
-    except OSError:
-        print("File not found")
-        return
-    
+def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=250, maxUtteranceDelta=150, visual=True):
+
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
     # segment transcript into segments of windowWidth
 
-    flattenTranscript = [token for section in transcript for token in section]
-
     processed = [] # segments of width windowWidth
     endTimes = [] # end times of every segment
-    utteranceBoundaries = [] # index of last token in each utterance
 
     totalTokenCount = 0
     tokenCount = 0
     processedSection = ''
-    for section in transcript:
-        for token in section:
-            totalTokenCount += 1
-            tokenCount += 1
-            if tokenCount > windowWidth:
-                processed.append(processedSection)
-                endTimes.append(token['startTime'])
-                processedSection = ''
-                tokenCount = 0
-            processedSection += ' ' + stem(token['word'], language).lower()
-        utteranceBoundaries.append(totalTokenCount)
+    for token in tokens:
+        totalTokenCount += 1
+        tokenCount += 1
+        if tokenCount > windowWidth:
+            processed.append(processedSection)
+            endTimes.append(token.time)
+            processedSection = ''
+            tokenCount = 0
+        processedSection += ' ' + stem(token.token, language).lower()
 
     endTimes.pop()
 
