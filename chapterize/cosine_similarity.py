@@ -8,42 +8,41 @@ from sklearn.metrics.pairwise import linear_kernel
 import numpy as np
 from scipy.signal import savgol_filter
 from scipy.signal import argrelextrema
+from math import floor
 
 import json
 
-def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=250, maxUtteranceDelta=150, visual=True):
+def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=200, maxUtteranceDelta=90, visual=True):
 
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
     # segment transcript into segments of windowWidth
 
     processed = [] # segments of width windowWidth
-    endTimes = [] # end times of every segment
+    end_times = [] # end times of every segment
 
-    totalTokenCount = 0
-    tokenCount = 0
-    processedSection = ''
-    for token in tokens:
-        totalTokenCount += 1
-        tokenCount += 1
-        if tokenCount > windowWidth:
-            processed.append(processedSection)
-            endTimes.append(token.time)
-            processedSection = ''
-            tokenCount = 0
-        processedSection += ' ' + stem(token.token, language).lower()
+    chunks = list(divide_chunks(tokens, windowWidth))
 
-    endTimes.pop()
+    for chunk in chunks:
+        processed_section = ''
+        for token in chunk:
+            processed_section += ' ' + stem(token.token, language).lower()
+            last_end_time = token.time
+        processed.append(processed_section)
+        end_times.append(last_end_time)
 
+    end_times.pop()
 
     # vectorize, remove of stopwords and weigh by tf-idf
-    vectorizer = TfidfVectorizer(min_df=4, max_df=0.95)
+    min_df = 1 if len(processed) < 7 else 4
+    vectorizer = TfidfVectorizer(min_df=min_df, max_df=0.95)
     tfidf = vectorizer.fit_transform(processed)
     # tfidf matrix: rows: documents, columns: words
 
 
     # calculate cosine similarity score for adjacent segments
     cosine_similarities = []
+    print('\ncosine similarity scores:')
     for i, doc_vec in enumerate(tfidf[:-1]):
         cosine_similarity = linear_kernel(doc_vec, tfidf[i+1])[0][0]
         cosine_similarities.append(cosine_similarity)
@@ -51,14 +50,15 @@ def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=250, max
 
 
     # smooth curve with Savitzky-Golay filter
-    window_length = min(11, len(cosine_similarities))
+    window_length = min(9, len(cosine_similarities))
     if window_length % 2 == 0: window_length -= 1
     cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 5)
 
     # calculate local minima
     minima = argrelextrema(cosine_similarities_smooth, np.less)[0]
-    print('local minima found at ', minima)
+    print('\nlocal minima found at {}\n'.format(minima))
 
+    maxUtteranceDelta = floor(windowWidth*.4)
 
     # find most common tokens for each section between minima by running tfidf weighing on combined sections
     concat_segments = []
@@ -83,49 +83,51 @@ def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=250, max
     
 
     #find closest utterance boundary for each local minima
-    segmentBoundaryTokens = []
-    segmentBoundaryTimes = []
+    segment_boundary_tokens = []
+    segment_boundary_times = []
     for minimum in minima:
-        closest = min(utteranceBoundaries, key=lambda x:abs(x-((minimum + 1)*windowWidth)))
+        closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*windowWidth)))
         print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*windowWidth, closest))
 
         if abs((minimum+1)*windowWidth - closest) <= maxUtteranceDelta:
-            segmentBoundaryTokens.append(flattenTranscript[closest])
-            segmentBoundaryTimes.append(flattenTranscript[closest]['startTime'])
+            segment_boundary_tokens.append(tokens[closest].token)
+            segment_boundary_times.append(tokens[closest].time)
         else:
-            print('  closest utterance boundary is too far from minimum boundary (maxUtteranceDelta exceeded), topic boundary set to {}'.format(flattenTranscript[minimum*windowWidth]))
-            segmentBoundaryTokens.append(flattenTranscript[(minimum+1)*windowWidth])
-            segmentBoundaryTimes.append(flattenTranscript[(minimum+1)*windowWidth]['startTime'])
+            print('  closest utterance boundary is too far from minimum boundary (maxUtteranceDelta exceeded), topic boundary set to {}'.format(tokens[minimum*windowWidth].token))
+            segment_boundary_tokens.append(tokens[(minimum+1)*windowWidth].token)
+            segment_boundary_times.append(tokens[(minimum+1)*windowWidth].time)
 
-    print("Segment boundary tokens:\n", segmentBoundaryTokens)
+    # print("Segment boundary tokens:\n", segment_boundary_tokens)
 
     if visual:
-        visualize(cosine_similarities_smooth, cosine_similarities, minima, segmentBoundaryTimes, endTimes)
+        visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
 
     # prepare chapter/ name list
     chapters = [{'time': 0, 'name': " ".join(topTokens[0])}]
-    for i, time in enumerate(segmentBoundaryTimes):
+    for i, time in enumerate(segment_boundary_times):
         chapters.append({'time': time, 'name': " ".join(topTokens[i+1])})
 
     return chapters
 
+def divide_chunks(l, n):
+    for i in range(0, len(l), n):  
+        yield l[i:i + n]
 
-def visualize(cosine_similarities, cosine_similarities_raw, minima, segmentBoundaryTimes, endTimes): 
+def visualize(cosine_similarities, cosine_similarities_raw, minima, segment_boundary_times, end_times): 
     import matplotlib.pyplot as plt
 
-    endTimes = [time / 60 for time in endTimes]
+    end_times = [time / 60 for time in end_times]
 
-    minimaX = [np.array(endTimes)[minimum] for minimum in minima]
+    minimaX = [np.array(end_times)[minimum] for minimum in minima]
     minimaY = [cosine_similarities[minimum] for minimum in minima]
 
     fig, ax = plt.subplots(figsize=(13, 6))
 
-    plt.plot(endTimes, cosine_similarities_raw, 'lightblue', label='cosine similarity', zorder=0)
-    plt.plot(endTimes, cosine_similarities, marker='.', label='smoothed cosine similarity', zorder=1)
+    plt.plot(end_times, cosine_similarities_raw, 'lightblue', label='cosine similarity', zorder=0)
+    plt.plot(end_times, cosine_similarities, marker='.', label='smoothed cosine similarity', zorder=1)
     plt.scatter(minimaX, minimaY, c='red', label='local minimum', zorder=2)
 
-    for x in segmentBoundaryTimes:
-        print(x)
+    for x in segment_boundary_times:
         plt.axvline(x=x/60)
 
     ax.legend()
