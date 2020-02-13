@@ -1,8 +1,9 @@
-transcribe/download/*
+transcribe/download/
 web/client/public/episodes/*
 output/*
 output/
 alt/
+transcribe/transcripts/
 .vscode
 *.tmp
 *.pyc
