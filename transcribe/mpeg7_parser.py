@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 # - boundaries (list of indices of first token in 2..n segment), returns empty list if only one segment
 def parse_mpeg7(filepath):
     try:
-        with open(filepath, "r") as f:
+        with open(filepath, "rb") as f:
             transcript = BeautifulSoup(f, "lxml-xml")
     except OSError:
         print("File not found")
