@@ -9,4 +9,5 @@ alt/
 jobs.json
 web/client/.env
 venv/
+ka3-venv/
 __pycache__
