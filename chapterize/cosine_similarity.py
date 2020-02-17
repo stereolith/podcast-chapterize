@@ -1,6 +1,7 @@
 import nltk
 
 from chapterize.preprocessor_helper import stem
+from write_chapters import Chapter
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
@@ -102,10 +103,11 @@ def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=200, max
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
 
-    # prepare chapter/ name list
-    chapters = [{'time': 0, 'name': " ".join(topTokens[0])}]
+    # prepare chapter/ title list
+    chapters = []
+    chapters.append(Chapter(0, " ".join(topTokens[0])))
     for i, time in enumerate(segment_boundary_times):
-        chapters.append({'time': time, 'name': " ".join(topTokens[i+1])})
+        chapters.append(Chapter(time, " ".join(topTokens[i+1])))
 
     return chapters
 

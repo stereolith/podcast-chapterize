@@ -5,8 +5,10 @@ import json
 import time
 import uuid
 import wget
-
+import pprint
 from tinydb import TinyDB, Query
+
+pp = pprint.PrettyPrinter(indent=4)
 
 # create tinydb
 db = TinyDB('jobs.json')
@@ -19,7 +21,7 @@ def save_job(_job):
     else:
         db.insert(_job)
     print('new status: ')
-    print(db.search(Job.id == _job['id']))
+    print(pp.pprint(db.search(Job.id == _job['id'])[0]))
 
 def get_job(id):
     job = db.search(Job.id == id)
@@ -49,17 +51,24 @@ def start_job(jobId):
     from transcribe.parse_rss import get_audio_url
     from transcribe.SpeechToTextModules.GoogleSpeechAPI import GoogleSpeechToText
     from chapterize.cosine_similarity import cosine_similarity
-    from write_chapters import write_chapters
+    from write_chapters import ChapterWriter
 
     # init Google Speech API
     stt = GoogleSpeechToText('/home/lukas/Documents/cred.json', 'transcribe-buffer')
+
+    # init chapter writer
+    cw = ChapterWriter()
 
     job = get_job(jobId)
 
     episodeInfo = get_audio_url(job['feedUrl'], job['episode'])
 
     if episodeInfo == None:
-        save_job({'id': jobId, 'status': 'FAILED', 'failMsg': 'could not find RSS feed or episode'})
+        save_job({
+            'id': jobId,
+            'status': 'FAILED',
+            'failMsg': 'could not find RSS feed or episode'
+        })
         return
 
     job['episodeInfo'] = episodeInfo
@@ -67,10 +76,10 @@ def start_job(jobId):
     save_job(job)
 
     # download audio
-    path = download_audio(job['episodeInfo']['episodeUrl'])
-    
+    job['originalAudioFilePath'] = download_audio(job['episodeInfo']['episodeUrl'])
+
     # transcribe
-    tokens, boundaries = stt.transcribe(path, job['language'])
+    tokens, boundaries = stt.transcribe(job['originalAudioFilePath'], job['language'])
 
     # save transcript to file
     job['transcriptFile'] = 'output/' + os.path.basename(job['episodeInfo']['episodeUrl']) + '_transcript.json'
@@ -80,20 +89,34 @@ def start_job(jobId):
             'tokens': [token.to_dict() for token in tokens]
         }, f)
 
+    save_job(job)
+
     chapters = cosine_similarity(tokens, boundaries, language=job['language'], visual=False)
 
-    save_job({'id': jobId, 'status': 'WRITING CHAPTERS'})
+    save_job({
+        'id': jobId,
+        'status': 'WRITING CHAPTERS'
+    })
 
     # write chapters to job object
-    save_job({'id': jobId, 'chapters': chapters})
+    save_job({
+        'id': jobId, 
+        'chapters': [chapter.to_dict() for chapter in chapters]
+    })
 
     # copy episode file to output folder
     processedAudioFilePath = os.path.join('output/', os.path.basename(job['originalAudioFilePath']))
     copyfile(job['originalAudioFilePath'], processedAudioFilePath )
 
-    write_chapters(chapters, processedAudioFilePath)
+    cw.write_chapters('txt', chapters, processedAudioFilePath + '.txt')
+    cw.write_chapters('mp3', chapters, processedAudioFilePath)
 
-    save_job({'id': jobId, 'chaptersFilePath': processedAudioFilePath.replace('.mp3', '_chapters.txt'), 'processedAudioFilePath': processedAudioFilePath, 'status': 'DONE'})
+    save_job({
+        'id': jobId,
+        'chaptersFilePath': processedAudioFilePath.replace('.mp3', '_chapters.txt'),
+        'processedAudioFilePath': processedAudioFilePath,
+        'status': 'DONE'
+    })
 
     # remove temp files
     if not keep_temp:
