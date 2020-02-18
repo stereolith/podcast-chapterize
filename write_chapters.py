@@ -57,13 +57,46 @@ def _write_to_mp3(chapters = List[Chapter], filepath = str):
     tag.save()
 
 def _write_to_txt(chapters = List[Chapter], filepath = str):
+    import datetime
     # write chapters to text file
     with open(filepath, 'w') as f:
         out = ''
         for chapter in chapters:
-            timeStr = time.strftime('%H:%M:%S', time.gmtime(chapter.time))
+            timeStr = datetime.utcfromtimestamp(chapter.time).strftime('%H:%M:%S.%f')[:-3]
             out += '{} {}\n'.format(timeStr, chapter.title)
         f.write(out)
 
-def _write_to_m4a():
-    pass
+def _write_to_m4a(chapters = List[Chapter], filepath = str):
+    from datetime import datetime
+    from subprocess import call
+    from os import path
+    import tempfile
+
+    text_samples = ''
+    for chapter in chapters:
+        time_str = datetime.utcfromtimestamp(chapter.time).strftime('%H:%M:%S.%f')[:-3]
+        text_samples += f'<TextSample sampleTime="{time_str}" sampleDescriptionIndex="1" xml:space="preserve">{chapter.title}</TextSample>'
+
+    ttxt_template = (
+        f'<?xml version="1.0" encoding="UTF-8" ?>'
+        f'<!-- GPAC 3GPP Text Stream -->'
+        f'<TextStream version="1.1">'
+        f'    <TextStreamHeader width="0" height="0" layer="65535" translation_x="0" translation_y="0">'
+        f'        <TextSampleDescription horizontalJustification="center" verticalJustification="bottom" backColor="1f 1f 1f 0" verticalText="no" fillTextRegion="no" continuousKaraoke="no" scroll="None">'
+        f'            <FontTable>'
+        f'                <FontTableEntry fontName="Sans-Serif" fontID="1"/>'
+        f'            </FontTable>'
+        f'            <TextBox top="0" left="0" bottom="0" right="0"/>'
+        f'            <Style styles="Bold " fontID="1" fontSize="18" color="0 0 0 ff"/>'
+        f'        </TextSampleDescription>'
+        f'    </TextStreamHeader>'
+        f'{text_samples}'
+        f'</TextStream>'
+    )
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.ttxt') as tf:
+        tf.write(ttxt_template)
+        tf.flush()
+        call(f'MP4Box -chap {tf.name} {filepath}', shell=True)
+        
+
