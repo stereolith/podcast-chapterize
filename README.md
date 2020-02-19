@@ -6,6 +6,7 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 ### Requirements
 * ffmpeg
+* [MP4Box](https://gpac.wp.imt.fr/2015/07/29/gpac-build-mp4box-only-all-platforms/)
 * matplotlib ([intall via package manager](https://matplotlib.org/3.1.1/users/installing.html#linux-using-your-package-manager))
 * Python module requirements (installable via requirements.txt)
 * node.js

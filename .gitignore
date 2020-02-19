@@ -10,5 +10,5 @@ transcribe/transcripts/
 jobs.json
 web/client/.env
 venv/
-ka3-venv/
+ka3-venv
 __pycache__

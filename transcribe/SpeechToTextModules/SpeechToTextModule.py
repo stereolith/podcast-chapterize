@@ -1,5 +1,7 @@
+from typing import List, Tuple
+
 class TranscriptToken(object):
-    def __init__(self, token, time):
+    def __init__(self, token = str, time = float):
         # word token
         self.token = token
 
@@ -16,4 +18,14 @@ class TranscriptToken(object):
 class SpeechToTextModule(object):
     def __init__(self):
         pass
+
+    # main transcribe function
+    # * filepath: path to audio file to transcribe
+    # * language: audio langage (ISO 639-1 language code)
+    # @returns: tuple
+    #   ( - tokens (list[TransctiptToken]): listtranscript with list of TranscriptToken objects 
+    def transcribe(self, filepath: str, language: str) -> Tuple[List[TranscriptToken], List[int]]:
+        tokens = []
+        boundaries = []
+        return tokens, boundaries
 
