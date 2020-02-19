@@ -39,7 +39,12 @@ def _write_to_mp3(chapters = List[Chapter], filepath = str):
     from eyed3.id3 import Tag
     # write chapters to mp3 metadata
     tag = Tag()
-    tag.parse(audioFile)
+    tag.parse(filepath)
+
+    # remove chapters if already set
+    # tag.table_of_contents.set(b'toc', child_ids=[])
+    # for every chapter id (i.e. 'ch0' od. 'chp0'), do
+    #   tag.chapters.remove(b'chp3')
 
     chapterIds = []
     for i, chapter in enumerate(chapters):
@@ -57,7 +62,7 @@ def _write_to_mp3(chapters = List[Chapter], filepath = str):
     tag.save()
 
 def _write_to_txt(chapters = List[Chapter], filepath = str):
-    import datetime
+    from datetime import datetime
     # write chapters to text file
     with open(filepath, 'w') as f:
         out = ''

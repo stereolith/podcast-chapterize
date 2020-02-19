@@ -6,6 +6,7 @@ import time
 import uuid
 import wget
 import pprint
+import subprocess
 from tinydb import TinyDB, Query
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -30,7 +31,7 @@ def get_job(id):
     else:
         return job[0]
 
-def create_job(feedUrl, language, episode=0, keep_temp=False):
+def create_job(feedUrl, language, episode=0):
     jobId = str(uuid.uuid1())
 
     # possible status states: 'CREATED', 'TRANSCRIBING', 'TRANSCRIBED', 'NLP', 'CHAPTER_WRITTEN', 'DONE'
@@ -47,7 +48,7 @@ def create_job(feedUrl, language, episode=0, keep_temp=False):
 
     return job['id']
 
-def start_job(jobId):
+def start_job(jobId, keep_temp=False):
     from transcribe.parse_rss import get_audio_url
     from transcribe.SpeechToTextModules.GoogleSpeechAPI import GoogleSpeechToText
     from chapterize.cosine_similarity import cosine_similarity
@@ -104,24 +105,32 @@ def start_job(jobId):
         'chapters': [chapter.to_dict() for chapter in chapters]
     })
 
-    # copy episode file to output folder
-    processedAudioFilePath = os.path.join('output/', os.path.basename(job['originalAudioFilePath']))
-    copyfile(job['originalAudioFilePath'], processedAudioFilePath )
+    # write chapters to file, convert if neccecary
+    processed_audio_file_path = os.path.join('output/', os.path.basename(job['originalAudioFilePath']))
+    copyfile(job['originalAudioFilePath'], processed_audio_file_path )
 
-    cw.write_chapters('txt', chapters, processedAudioFilePath + '.txt')
-    cw.write_chapters('mp3', chapters, processedAudioFilePath)
+    suffix = os.path.splitext(processed_audio_file_path)[1]
+    if suffix == '.mp3':
+        cw.write_chapters('mp3', chapters, processed_audio_file_path)
+    elif suffix == '.m4a':
+        cw.write_chapters('m4a', chapters, processed_audio_file_path)
+    else:
+        mp3_file_path = os.path.splitext(processed_audio_file_path) + '.mp3'
+        subprocess.Popen(f'ffmpeg -y -i {processed_audio_file_path} {mp3_file_path}', shell=True)
+        processed_audio_file_path = mp3_file_path
+
+    cw.write_chapters('txt', chapters, processed_audio_file_path + '.txt')
 
     save_job({
         'id': jobId,
-        'chaptersFilePath': processedAudioFilePath.replace('.mp3', '_chapters.txt'),
-        'processedAudioFilePath': processedAudioFilePath,
+        'chaptersFilePath': processed_audio_file_path.replace('.mp3', '_chapters.txt'),
+        'processedAudioFilePath': processed_audio_file_path,
         'status': 'DONE'
     })
 
     # remove temp files
     if not keep_temp:
         os.remove(job['originalAudioFilePath'])
-        os.remove(job['wavAudioFilePath'])
 
 
 def get_player_config(id):
