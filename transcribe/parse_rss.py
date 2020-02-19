@@ -7,6 +7,9 @@ def get_audio_url(feedUrl, episode=0):
         for link in lastEpisode['links']:
             if link['rel'] == 'enclosure':
                 audioUrl = link['href']
+            else:
+                print('could not find audio url')
+                return None
         if audioUrl.rfind('?') != -1:
             audioUrl = audioUrl[:audioUrl.rfind('?')]
         print('episode name: ', lastEpisode['title'])
