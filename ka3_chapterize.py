@@ -50,7 +50,9 @@ def main(transcript, output, audio):
         #     with open(audio, 'rb') as src, open(audio_target_path, 'wb') as dst:
         #         copyfileobj(src, dst)
         # else:
-        subprocess.Popen(f'./libs/ffmpeg/ffmpeg -y -i {audio} -c:a aac -b:a 192k {audio_target_path}', shell=True).wait()
+
+        project_path = os.path.dirname(os.path.realpath(__file__))
+        subprocess.Popen(f'{project_path}/libs/ffmpeg/ffmpeg -y -i {audio} -c:a aac -b:a 192k {audio_target_path}', shell=True).wait()
 
         cw.write_chapters('m4a', chapters, audio_target_path)
 
