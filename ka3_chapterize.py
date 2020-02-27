@@ -40,18 +40,19 @@ def main(transcript, output, audio):
         os.path.join(output, f'{filename}_chapters.txt')
     )
 
-    suffix = os.path.splitext(audio)[1]
-    
-    audio_target_path = os.path.join(output, f'{filename}.m4a')
+    if audio:
+        suffix = os.path.splitext(audio)[1]
+        
+        audio_target_path = os.path.join(output, f'{filename}.m4a')
 
-    # todo: properly handle audio which is already in the target format
-    # if suffix == '.m4a':
-    #     with open(audio, 'rb') as src, open(audio_target_path, 'wb') as dst:
-    #         copyfileobj(src, dst)
-    # else:
-    subprocess.Popen(f'ffmpeg -y -i {audio} -c:a aac -b:a 192k {audio_target_path}', shell=True).wait()
+        # todo: properly handle audio which is already in the target format
+        # if suffix == '.m4a':
+        #     with open(audio, 'rb') as src, open(audio_target_path, 'wb') as dst:
+        #         copyfileobj(src, dst)
+        # else:
+        subprocess.Popen(f'./libs/ffmpeg/ffmpeg -y -i {audio} -c:a aac -b:a 192k {audio_target_path}', shell=True).wait()
 
-    cw.write_chapters('m4a', chapters, audio_target_path)
+        cw.write_chapters('m4a', chapters, audio_target_path)
 
 # parse comand line arguments
 if __name__ == '__main__':
