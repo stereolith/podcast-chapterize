@@ -1,7 +1,7 @@
+import nltk
+from nltk.stem import WordNetLemmatizer, Cistem
+nltk.download('wordnet')
 def stem(token, language):
-    import nltk
-    from nltk.stem import WordNetLemmatizer, Cistem
-    nltk.download('wordnet')
 
     enLemmatizer = WordNetLemmatizer()
     deStemmer = Cistem()

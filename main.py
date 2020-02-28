@@ -119,7 +119,7 @@ def start_job(jobId, keep_temp=False):
         subprocess.Popen(f'ffmpeg -y -i {processed_audio_file_path} {mp3_file_path}', shell=True)
         processed_audio_file_path = mp3_file_path
 
-    cw.write_chapters('txt', chapters, processed_audio_file_path + '.txt')
+    
 
     save_job({
         'id': jobId,
@@ -211,7 +211,31 @@ def transcribe_action(args):
         }, f)
 
 def chapterize_action(args):
-    raise(NotImplementedError())
+    from transcribe.SpeechToTextModules.SpeechToTextModule import TranscriptToken
+    from chapterize.cosine_similarity import cosine_similarity
+
+    with open(args.transcript, 'r') as f:
+        transcript = json.load(f)
+
+    tokens = [TranscriptToken(token['token'], token['time']) for token in transcript['tokens']]
+    boundaries = transcript['boundaries']
+
+    chapters = cosine_similarity(
+        tokens,
+        boundaries,
+        language=args.language,
+        title_tokens=args.title_tokens,
+        window_width=args.window_width,
+        max_utterance_delta=args.max_utterance_delta,
+        tfidf_min_df=args.tfidf_min_df,
+        tfidf_max_df=args.tfidf_max_df,
+        savgol_window_length=args.savgol_window_length,
+        savgol_polyorder=args.savgol_polyorder,
+        visual=args.v
+    )
+
+    print(chapters)
+  
     
     
 # if called directly, parse comand line arguments
@@ -237,7 +261,18 @@ if __name__ == '__main__':
     transcribe_parser.set_defaults(func=transcribe_action)
 
     # chapterize parser
+    from chapterize.cosine_similarity import default_params
     chapterize_parser = subparsers.add_parser('chapterize', help='create chapters from an audio transcript')
+    chapterize_parser.add_argument('transcript', type=str, help='transcript json file incl. tokens and boundaries')
+    chapterize_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
+    chapterize_parser.add_argument('-v', action='store_true', help='show graph')
+    chapterize_parser.add_argument('-title-tokens', type=int, default=6, help='number of tokens to generate for each chapter title')
+    chapterize_parser.add_argument('-window-width', type=int, default=default_params.window_width, help='window width for inital segmentation')
+    chapterize_parser.add_argument('-max-utterance-delta', type=int, default=default_params.max_utterance_delta, help='maximum delta of tokens when refining detected boundaries by choosing nearby utterance boundaries')
+    chapterize_parser.add_argument('-tfidf-min-df', type=int, default=default_params.tfidf_min_df, help='tfidf min_df value')
+    chapterize_parser.add_argument('-tfidf-max-df', type=int, default=default_params.tfidf_max_df, help='tfidf max_df value')
+    chapterize_parser.add_argument('-savgol-window-length', type=int, default=default_params.savgol_window_length, help='window_length value for savgol smoothing')
+    chapterize_parser.add_argument('-savgol-polyorder', type=int, default=default_params.savgol_polyorder, help='polyorder value for savgol smoothing')
     chapterize_parser.set_defaults(func=chapterize_action)
 
     args = parser.parse_args()
