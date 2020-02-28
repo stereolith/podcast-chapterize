@@ -62,7 +62,7 @@ def start_job(jobId, keep_temp=False):
 
     job = get_job(jobId)
 
-    episodeInfo = get_audio_url(job['feedUrl'], job['episode'])
+    episode_info = get_audio_url(job['feedUrl'], job['episode'])
 
     if episodeInfo == None:
         save_job({
@@ -72,7 +72,7 @@ def start_job(jobId, keep_temp=False):
         })
         return
 
-    job['episodeInfo'] = episodeInfo
+    job['episodeInfo'] = episode_info
 
     save_job(job)
 
@@ -182,15 +182,65 @@ def download_audio(url):
     return path
 
 
+# action functions called from CLI
+def run_action(args):
+    jobId = create_job(args.url, args.language, args.episode)
+    start_job(jobId)
+
+def transcribe_action(args):
+    from transcribe.parse_rss import get_audio_url
+    from transcribe.SpeechToTextModules.GoogleSpeechAPI import GoogleSpeechToText
+
+    # init Google Speech API
+    stt = GoogleSpeechToText('/home/lukas/Documents/cred.json', 'transcribe-buffer')
+
+    episode_info = get_audio_url(args.url, args.episode)
+
+    # download audio
+    original_audio_file_path = download_audio(episode_info['episodeUrl'])
+
+    # transcribe
+    tokens, boundaries = stt.transcribe(original_audio_file_path, args.language)
+
+    # save transcript to file
+    transcript_file = f'{args.output}/{os.path.basename(episode_info["episodeUrl"])}_transcript.json'
+    with open(transcript_file, 'w') as f:
+        json.dump({
+            'boundaries': boundaries,
+            'tokens': [token.to_dict() for token in tokens]
+        }, f)
+
+def chapterize_action(args):
+    raise(NotImplementedError())
+    
+    
 # if called directly, parse comand line arguments
 if __name__ == '__main__':
+    # top-level parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
-    parser.add_argument('language', type=str, choices=['en', 'de'], help='Language of podcast episode')
-    parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
+    
+    subparsers = parser.add_subparsers(help='possible actions')
+
+    # main parser 'run'
+    run_parser = subparsers.add_parser('run', help='create chapters for a podcast episode from an RSS feed URL')
+    run_parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
+    run_parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
+    run_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
+    run_parser.set_defaults(func=run_action)
+
+    # transcribe parser
+    transcribe_parser = subparsers.add_parser('transcribe', help='transcribe a podcast episode from an RSS feed URL')
+    transcribe_parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
+    transcribe_parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to transcribe (0 for latest, 1 for penultimate)')
+    transcribe_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
+    transcribe_parser.add_argument('output', type=str, default='.', help='output directory')
+    transcribe_parser.set_defaults(func=transcribe_action)
+
+    # chapterize parser
+    chapterize_parser = subparsers.add_parser('chapterize', help='create chapters from an audio transcript')
+    chapterize_parser.set_defaults(func=chapterize_action)
 
     args = parser.parse_args()
     
-    jobId = create_job(args.url, args.language, args.episode)
-    start_job(jobId)
-    
+    # run action function referenced in 'func' attribute
+    args.func(args)
