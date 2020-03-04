@@ -181,6 +181,10 @@ def download_audio(url):
     print('\ndownloaded file {0}'.format(path))
     return path
 
+def extract_chapters(url):
+    import subprocess
+    out = subprocess.run(['ffprobe', '-i', url,  '-print_format', 'json', '-show_chapters', '-loglevel' , 'error'], stdout=subprocess.PIPE, encoding='utf-8')
+    return json.loads(out.stdout)['chapters']
 
 # action functions called from CLI
 def run_action(args):
@@ -207,7 +211,8 @@ def transcribe_action(args):
     with open(transcript_file, 'w') as f:
         json.dump({
             'boundaries': boundaries,
-            'tokens': [token.to_dict() for token in tokens]
+            'tokens': [token.to_dict() for token in tokens],
+            'chapters': extract_chapters(episode_info['episodeUrl']) if args.chapters else []
         }, f)
 
 def chapterize_action(args):
@@ -257,6 +262,7 @@ if __name__ == '__main__':
     transcribe_parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
     transcribe_parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to transcribe (0 for latest, 1 for penultimate)')
     transcribe_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
+    transcribe_parser.add_argument('-c', '--chapters', action='store_true', help='extract chapters from audio file')
     transcribe_parser.add_argument('output', type=str, default='.', help='output directory')
     transcribe_parser.set_defaults(func=transcribe_action)
 
