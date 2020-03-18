@@ -3,21 +3,29 @@ import scipy as sp
 
 #def cvs(tokens, boundaries):
 
-def test():
+def test(transcript):
     import json
-    with open('/home/lukas/Documents/podcast-chapterize-eval/transcripts/raumzeit-2020.m4a_transcript.json', 'r') as f:
+    with open(transcript, 'r') as f:
         data = json.load(f)
     
     tokens = [token['token'] for token in data['tokens']]
 
     splits = cvs(tokens, len(data["chapters"]) -1)
 
-    for split in splits:
-        print(f'time: {round(float(data["tokens"][split]["time"])/60, 2)} min')
+    splits_times = [round(float(data["tokens"][split]["time"])/60, 2) for split in splits]
+
+    for split_time in splits_times:
+        print(f'time: {split_time} min')
+
 
     print(f'\ngold chapter times: ({len(data["chapters"])} chapters)')
-    for gold_chapter in data["chapters"]:
-        print(f'time: {round(float(gold_chapter["start_time"])/60, 2)} min')
+
+    gold_chapters = [round(float(chapter["start_time"])/60, 2) for chapter in data["chapters"][1:]]
+
+    for gold_chapter in gold_chapters:
+        print(f'time: {gold_chapter} min')
+
+    close_matches(splits_times, gold_chapters)
 
 
 def cvs(tokens, k):
@@ -53,6 +61,21 @@ def cvs(tokens, k):
 
     return [mapperr[split] for split in splitsr[:-1]]
     
+def close_matches(chapters, gold):
+    diffs = []
+
+    for g_chap in gold:
+        lowest_i = 0
+        for i, chap in enumerate(chapters):
+            if chapters[lowest_i] > abs(chap - g_chap):
+                lowest_i = i
+        print(f"for gold {g_chap} closest found chapter is at {chapters[lowest_i]}")
+        diffs.append(abs(chap - chapters[lowest_i]))
+    
+    print(f"mean deviation from closest gold chapter: {sum(diffs) / len(diffs)}") 
+    
+
+
 def greedysplit_optimize_k(n, sig):
     # score value from sig (gensig_model) correlates with k
     # normalization need, else the score is always lower for a higher k

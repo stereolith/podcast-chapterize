@@ -108,17 +108,6 @@ def cosine_similarity(
         concat_segments.append(concat_segment)
     concat_segments.append(" ".join(processed[minima[-1] + 1:])) # append last section (from last boundary to end)
     
-    concat_vectorizer = TfidfVectorizer(max_df=0.7)
-    concat_tfidf = concat_vectorizer.fit_transform(concat_segments)
-    
-    # get top 6 tokens with the highest tfidf-weighted score for each combined section 
-    topTokens = []
-    feature_names = np.array(concat_vectorizer.get_feature_names())
-    for doc in concat_tfidf:
-        tfidf_sorted = np.argsort(doc.toarray()).flatten()[::-1]
-        topTokens.append(feature_names[tfidf_sorted][:title_tokens].tolist())
-    
-
     #find closest utterance boundary for each local minima
     segment_boundary_tokens = []
     segment_boundary_times = []
@@ -139,13 +128,7 @@ def cosine_similarity(
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
 
-    # prepare chapter/ title list
-    chapters = []
-    chapters.append(Chapter(0, " ".join(topTokens[0])))
-    for i, time in enumerate(segment_boundary_times):
-        chapters.append(Chapter(time, " ".join(topTokens[i+1])))
-
-    return chapters
+    return concat_segments
 
 def divide_chunks(l, n):
     for i in range(0, len(l), n):  

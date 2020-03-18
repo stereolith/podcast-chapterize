@@ -8,11 +8,21 @@ class TranscriptToken(object):
         # time of occurence in audio in seconds
         self.time = time
 
+    @classmethod
+    def from_dict(cls, token_dict):
+        token = cls(token_dict['token'], float(token_dict['time']))
+        return token
+
     def to_dict(self):
         return {
             'token': self.token,
             'time': self.time
         }
+
+    def parse_dict(self, d):
+        self.token = d['token']
+        self.time = d['time']
+        return self
 
 # Speech to text module that takes an URL to an audio file and creates a list of transcriptTokens
 class SpeechToTextModule(object):
