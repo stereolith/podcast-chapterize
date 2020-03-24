@@ -1,6 +1,6 @@
 import nltk
 
-from chapterize.preprocessor_helper import stem
+from chapterize.preprocessor_helper import lemma
 from write_chapters import Chapter
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -56,12 +56,16 @@ def cosine_similarity(
     processed = [] # segments of width window_width
     end_times = [] # end times of every segment
 
-    chunks = list(divide_chunks(tokens, window_width))
+    # batch preprocess tokens
+    chunk_tokens_lemma = lemma([token.token for token in tokens], language)
+    for i, token in enumerate(tokens):
+        token.token = chunk_tokens_lemma[i]
 
-    for chunk in chunks:
+    chunks = list(divide_chunks(tokens, window_width))
+    for chunk in chunks:       
         processed_section = ''
         for token in chunk:
-            processed_section += ' ' + stem(token.token, language).lower()
+            processed_section += ' ' + token.token
             last_end_time = token.time
         processed.append(processed_section)
         end_times.append(last_end_time)

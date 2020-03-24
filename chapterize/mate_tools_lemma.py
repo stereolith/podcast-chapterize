@@ -13,7 +13,6 @@ class MateToolsLemmazizer():
             in_f.flush()
             with tempfile.NamedTemporaryFile() as out_f:
                 project_path = path.dirname(path.realpath(__file__))
-                print(project_path)
                 call(f"java -Xmx2G -classpath {project_path}/mate_tools/transition-1.30.jar is2.lemmatizer2.Lemmatizer -model {project_path}/mate_tools/models/lemma-ger-3.6.model -test {in_f.name} -out {out_f.name} -uc", shell=True)
                 out = out_f.read().decode()
         return self.parse_conll_09_str(out)
@@ -28,7 +27,6 @@ class MateToolsLemmazizer():
         lines = string.split('\n')
         tokens = []
         for line in lines:
-            print(line)
             cells = line.split('\t')
             if len(cells) > 1:
                 tokens.append(cells[3])
