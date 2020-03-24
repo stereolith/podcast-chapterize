@@ -52,7 +52,8 @@ def start_job(jobId, keep_temp=False):
     from transcribe.parse_rss import get_audio_url
     from transcribe.SpeechToTextModules.GoogleSpeechAPI import GoogleSpeechToText
     from chapterize.cosine_similarity import cosine_similarity
-    from write_chapters import ChapterWriter
+    from chapterize.chapter_namer import chapter_names
+    from write_chapters import ChapterWriter, Chapter
 
     # init Google Speech API
     stt = GoogleSpeechToText('/home/lukas/Documents/cred.json', 'transcribe-buffer')
@@ -92,7 +93,11 @@ def start_job(jobId, keep_temp=False):
 
     save_job(job)
 
-    chapters = cosine_similarity(tokens, boundaries, language=job['language'], visual=False)
+    concat_segments, minima = cosine_similarity(tokens, boundaries, language=job['language'], visual=False)
+
+    chapter_titles = chapter_names(concat_chapters)
+
+    chapters = [Chapter(tokens[minima].time, chapter_titles[i]) for i, minimum in enumerate(minima)]
 
     save_job({
         'id': jobId,
@@ -218,6 +223,7 @@ def transcribe_action(args):
 def chapterize_action(args):
     from transcribe.SpeechToTextModules.SpeechToTextModule import TranscriptToken
     from chapterize.cosine_similarity import cosine_similarity
+    from chapterize.chapter_namer import chapter_names
 
     with open(args.transcript, 'r') as f:
         transcript = json.load(f)
@@ -225,11 +231,10 @@ def chapterize_action(args):
     tokens = [TranscriptToken(token['token'], token['time']) for token in transcript['tokens']]
     boundaries = transcript['boundaries']
 
-    chapters = cosine_similarity(
+    concat_chapters, minima = cosine_similarity(
         tokens,
         boundaries,
         language=args.language,
-        title_tokens=args.title_tokens,
         window_width=args.window_width,
         max_utterance_delta=args.max_utterance_delta,
         tfidf_min_df=args.tfidf_min_df,
@@ -237,7 +242,11 @@ def chapterize_action(args):
         savgol_window_length=args.savgol_window_length,
         savgol_polyorder=args.savgol_polyorder,
         visual=args.v
-    )  
+    )
+    print([f"{tokens[minimum].time}\n" for minimum in minima])
+
+    titles = chapter_names(concat_chapters)
+    print(titles)
     
     
 # if called directly, parse comand line arguments

@@ -39,15 +39,31 @@ def cosine_similarity(
     tokens,
     boundaries=[],
     language='en',
-    title_tokens=6,
     window_width=default_params.window_width,
     max_utterance_delta=default_params.max_utterance_delta,
     tfidf_min_df=default_params.tfidf_min_df,
     tfidf_max_df=default_params.tfidf_max_df,
     savgol_window_length=default_params.savgol_window_length,
     savgol_polyorder=default_params.savgol_polyorder,
-    visual=True
+    visual=False
     ):
+    """segment a document into coherent parts
+    
+    Args:
+        tokens (TranscriptToken): tokens to segment
+        boundaries (list, optional): list of integers, additional boundaries to refine segmentation. Defaults to [].
+        language (str, optional): language (ISO 639-1 language code). Defaults to 'en'.
+        window_width (int, optional): width of initial segmentation. Defaults to default_params.window_width.
+        max_utterance_delta (int, optional): maximum delta of tokens when refining detected boundaries by choosing nearby utterance boundaries. Defaults to default_params.max_utterance_delta.
+        tfidf_min_df (int, optional): tfidf min_df value. Defaults to default_params.tfidf_min_df.
+        tfidf_max_df (int, optional): tfidf max_df value. Defaults to default_params.tfidf_max_df.
+        savgol_window_length (int, optional): window_length value for savgol smoothing. Defaults to default_params.savgol_window_length.
+        savgol_polyorder (int, optional): polyorder value for savgol smoothing. Defaults to default_params.savgol_polyorder.
+        visual (bool, optional): show graph. Defaults to False.
+    
+    Returns:
+        [type]: [description]
+    """    
 
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
@@ -101,7 +117,7 @@ def cosine_similarity(
 
     max_utterance_delta = floor(window_width*.4)
 
-    # find most common tokens for each section between minima by running tfidf weighing on combined sections
+    # concatinate wokens for each section
     concat_segments = []
     for i, minimum in enumerate(minima):
         concat_segment = ''
@@ -132,7 +148,7 @@ def cosine_similarity(
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
 
-    return concat_segments
+    return concat_segments, minima
 
 def divide_chunks(l, n):
     for i in range(0, len(l), n):  
