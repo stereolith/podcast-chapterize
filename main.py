@@ -237,10 +237,7 @@ def chapterize_action(args):
         savgol_window_length=args.savgol_window_length,
         savgol_polyorder=args.savgol_polyorder,
         visual=args.v
-    )
-
-    print(chapters)
-  
+    )  
     
     
 # if called directly, parse comand line arguments
