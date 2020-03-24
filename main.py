@@ -243,7 +243,7 @@ def chapterize_action(args):
         savgol_polyorder=args.savgol_polyorder,
         visual=args.v
     )
-    print([f"{tokens[minimum].time}\n" for minimum in minima])
+    print([f"{tokens[minimum].time}" for minimum in minima])
 
     titles = chapter_names(concat_chapters)
     print(titles)
