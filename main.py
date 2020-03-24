@@ -62,7 +62,7 @@ def start_job(jobId, keep_temp=False):
 
     job = get_job(jobId)
 
-    episodeInfo = get_audio_url(job['feedUrl'], job['episode'])
+    episode_info = get_audio_url(job['feedUrl'], job['episode'])
 
     if episodeInfo == None:
         save_job({
@@ -72,7 +72,7 @@ def start_job(jobId, keep_temp=False):
         })
         return
 
-    job['episodeInfo'] = episodeInfo
+    job['episodeInfo'] = episode_info
 
     save_job(job)
 
@@ -119,7 +119,7 @@ def start_job(jobId, keep_temp=False):
         subprocess.Popen(f'ffmpeg -y -i {processed_audio_file_path} {mp3_file_path}', shell=True)
         processed_audio_file_path = mp3_file_path
 
-    cw.write_chapters('txt', chapters, processed_audio_file_path + '.txt')
+    
 
     save_job({
         'id': jobId,
@@ -181,16 +181,107 @@ def download_audio(url):
     print('\ndownloaded file {0}'.format(path))
     return path
 
+def extract_chapters(url):
+    import subprocess
+    out = subprocess.run(['ffprobe', '-i', url,  '-print_format', 'json', '-show_chapters', '-loglevel' , 'error'], stdout=subprocess.PIPE, encoding='utf-8')
+    return json.loads(out.stdout)['chapters']
 
+# action functions called from CLI
+def run_action(args):
+    jobId = create_job(args.url, args.language, args.episode)
+    start_job(jobId)
+
+def transcribe_action(args):
+    from transcribe.parse_rss import get_audio_url
+    from transcribe.SpeechToTextModules.GoogleSpeechAPI import GoogleSpeechToText
+
+    # init Google Speech API
+    stt = GoogleSpeechToText('/home/lukas/Documents/cred.json', 'transcribe-buffer')
+
+    episode_info = get_audio_url(args.url, args.episode)
+
+    # download audio
+    original_audio_file_path = download_audio(episode_info['episodeUrl'])
+
+    # transcribe
+    tokens, boundaries = stt.transcribe(original_audio_file_path, args.language)
+
+    # save transcript to file
+    transcript_file = f'{args.output}/{os.path.basename(episode_info["episodeUrl"])}_transcript.json'
+    with open(transcript_file, 'w') as f:
+        json.dump({
+            'boundaries': boundaries,
+            'tokens': [token.to_dict() for token in tokens],
+            'chapters': extract_chapters(episode_info['episodeUrl']) if args.chapters else []
+        }, f)
+
+def chapterize_action(args):
+    from transcribe.SpeechToTextModules.SpeechToTextModule import TranscriptToken
+    from chapterize.cosine_similarity import cosine_similarity
+
+    with open(args.transcript, 'r') as f:
+        transcript = json.load(f)
+
+    tokens = [TranscriptToken(token['token'], token['time']) for token in transcript['tokens']]
+    boundaries = transcript['boundaries']
+
+    chapters = cosine_similarity(
+        tokens,
+        boundaries,
+        language=args.language,
+        title_tokens=args.title_tokens,
+        window_width=args.window_width,
+        max_utterance_delta=args.max_utterance_delta,
+        tfidf_min_df=args.tfidf_min_df,
+        tfidf_max_df=args.tfidf_max_df,
+        savgol_window_length=args.savgol_window_length,
+        savgol_polyorder=args.savgol_polyorder,
+        visual=args.v
+    )
+
+    print(chapters)
+  
+    
+    
 # if called directly, parse comand line arguments
 if __name__ == '__main__':
+    # top-level parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
-    parser.add_argument('language', type=str, choices=['en', 'de'], help='Language of podcast episode')
-    parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
+    
+    subparsers = parser.add_subparsers(help='possible actions')
+
+    # main parser 'run'
+    run_parser = subparsers.add_parser('run', help='create chapters for a podcast episode from an RSS feed URL')
+    run_parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
+    run_parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to chapterize (0 for latest, 1 for penultimate)')
+    run_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
+    run_parser.set_defaults(func=run_action)
+
+    # transcribe parser
+    transcribe_parser = subparsers.add_parser('transcribe', help='transcribe a podcast episode from an RSS feed URL')
+    transcribe_parser.add_argument('url', type=str, help='RSS feed URL for the podcast')
+    transcribe_parser.add_argument('-e', '--episode', type=int, default=0, help='default: 0; Number of episode to transcribe (0 for latest, 1 for penultimate)')
+    transcribe_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
+    transcribe_parser.add_argument('-c', '--chapters', action='store_true', help='extract chapters from audio file')
+    transcribe_parser.add_argument('output', type=str, default='.', help='output directory')
+    transcribe_parser.set_defaults(func=transcribe_action)
+
+    # chapterize parser
+    from chapterize.cosine_similarity import default_params
+    chapterize_parser = subparsers.add_parser('chapterize', help='create chapters from an audio transcript')
+    chapterize_parser.add_argument('transcript', type=str, help='transcript json file incl. tokens and boundaries')
+    chapterize_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
+    chapterize_parser.add_argument('-v', action='store_true', help='show graph')
+    chapterize_parser.add_argument('-title-tokens', type=int, default=6, help='number of tokens to generate for each chapter title')
+    chapterize_parser.add_argument('-window-width', type=int, default=default_params.window_width, help='window width for inital segmentation')
+    chapterize_parser.add_argument('-max-utterance-delta', type=int, default=default_params.max_utterance_delta, help='maximum delta of tokens when refining detected boundaries by choosing nearby utterance boundaries')
+    chapterize_parser.add_argument('-tfidf-min-df', type=int, default=default_params.tfidf_min_df, help='tfidf min_df value')
+    chapterize_parser.add_argument('-tfidf-max-df', type=int, default=default_params.tfidf_max_df, help='tfidf max_df value')
+    chapterize_parser.add_argument('-savgol-window-length', type=int, default=default_params.savgol_window_length, help='window_length value for savgol smoothing')
+    chapterize_parser.add_argument('-savgol-polyorder', type=int, default=default_params.savgol_polyorder, help='polyorder value for savgol smoothing')
+    chapterize_parser.set_defaults(func=chapterize_action)
 
     args = parser.parse_args()
     
-    jobId = create_job(args.url, args.language, args.episode)
-    start_job(jobId)
-    
+    # run action function referenced in 'func' attribute
+    args.func(args)

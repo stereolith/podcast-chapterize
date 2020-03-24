@@ -13,16 +13,50 @@ from math import floor
 
 import json
 
-def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=200, maxUtteranceDelta=90, visual=True):
+# a class that describes the params for cosine similarity NLP tasks,
+#including default params
+class CosineSimilarityParams:
+    def __init__(
+        self,
+        window_width=200,
+        max_utterance_delta=90,
+        tfidf_min_df=0,
+        tfidf_max_df=0.59,
+        savgol_window_length=0,
+        savgol_polyorder=5,
+    ):
+        self.window_width = window_width
+        self.max_utterance_delta = max_utterance_delta
+        self.tfidf_min_df = tfidf_min_df
+        self.tfidf_max_df = tfidf_max_df
+        self.savgol_window_length = savgol_window_length
+        self.savgol_polyorder = savgol_polyorder
+
+default_params = CosineSimilarityParams()
+
+
+def cosine_similarity(
+    tokens,
+    boundaries=[],
+    language='en',
+    title_tokens=6,
+    window_width=default_params.window_width,
+    max_utterance_delta=default_params.max_utterance_delta,
+    tfidf_min_df=default_params.tfidf_min_df,
+    tfidf_max_df=default_params.tfidf_max_df,
+    savgol_window_length=default_params.savgol_window_length,
+    savgol_polyorder=default_params.savgol_polyorder,
+    visual=True
+    ):
 
     # preprocess: 
     # lowercase, lemmatize, remove stopwords
-    # segment transcript into segments of windowWidth
+    # segment transcript into segments of window_width
 
-    processed = [] # segments of width windowWidth
+    processed = [] # segments of width window_width
     end_times = [] # end times of every segment
 
-    chunks = list(divide_chunks(tokens, windowWidth))
+    chunks = list(divide_chunks(tokens, window_width))
 
     for chunk in chunks:
         processed_section = ''
@@ -35,8 +69,9 @@ def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=200, max
     end_times.pop()
 
     # vectorize, remove of stopwords and weigh by tf-idf
-    min_df = 1 if len(processed) < 7 else 4
-    vectorizer = TfidfVectorizer(min_df=min_df, max_df=0.95)
+    if tfidf_min_df == 0:
+        tfidf_min_df = 1 if len(processed) < 7 else 4
+    vectorizer = TfidfVectorizer(min_df=tfidf_min_df, max_df=tfidf_max_df)
     tfidf = vectorizer.fit_transform(processed)
     # tfidf matrix: rows: documents, columns: words
 
@@ -51,15 +86,16 @@ def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=200, max
 
 
     # smooth curve with Savitzky-Golay filter
-    window_length = min(9, len(cosine_similarities))
-    if window_length % 2 == 0: window_length -= 1
-    cosine_similarities_smooth = savgol_filter(cosine_similarities, window_length, 5)
+    if savgol_window_length == 0:
+        savgol_window_length = min(9, len(cosine_similarities))
+        if savgol_window_length % 2 == 0: savgol_window_length -= 1
+    cosine_similarities_smooth = savgol_filter(cosine_similarities, savgol_window_length, savgol_polyorder)
 
     # calculate local minima
     minima = argrelextrema(cosine_similarities_smooth, np.less)[0]
     print('\nlocal minima found at {}\n'.format(minima))
 
-    maxUtteranceDelta = floor(windowWidth*.4)
+    max_utterance_delta = floor(window_width*.4)
 
     # find most common tokens for each section between minima by running tfidf weighing on combined sections
     concat_segments = []
@@ -72,44 +108,27 @@ def cosine_similarity(tokens, boundaries=[], language='en', windowWidth=200, max
         concat_segments.append(concat_segment)
     concat_segments.append(" ".join(processed[minima[-1] + 1:])) # append last section (from last boundary to end)
     
-    concat_vectorizer = TfidfVectorizer(max_df=0.7)
-    concat_tfidf = concat_vectorizer.fit_transform(concat_segments)
-    
-    # get top 6 tokens with the highest tfidf-weighted score for each combined section 
-    topTokens = []
-    feature_names = np.array(concat_vectorizer.get_feature_names())
-    for doc in concat_tfidf:
-        tfidf_sorted = np.argsort(doc.toarray()).flatten()[::-1]
-        topTokens.append(feature_names[tfidf_sorted][:6].tolist())
-    
-
     #find closest utterance boundary for each local minima
     segment_boundary_tokens = []
     segment_boundary_times = []
     for minimum in minima:
-        closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*windowWidth)))
-        print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*windowWidth, closest))
+        closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*window_width)))
+        print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*window_width, closest))
 
-        if abs((minimum+1)*windowWidth - closest) <= maxUtteranceDelta:
+        if abs((minimum+1)*window_width - closest) <= max_utterance_delta:
             segment_boundary_tokens.append(tokens[closest].token)
             segment_boundary_times.append(tokens[closest].time)
         else:
-            print('  closest utterance boundary is too far from minimum boundary (maxUtteranceDelta exceeded), topic boundary set to {}'.format(tokens[minimum*windowWidth].token))
-            segment_boundary_tokens.append(tokens[(minimum+1)*windowWidth].token)
-            segment_boundary_times.append(tokens[(minimum+1)*windowWidth].time)
+            print('  closest utterance boundary is too far from minimum boundary (max_utterance_delta exceeded), topic boundary set to {}'.format(tokens[minimum*window_width].token))
+            segment_boundary_tokens.append(tokens[(minimum+1)*window_width].token)
+            segment_boundary_times.append(tokens[(minimum+1)*window_width].time)
 
     # print("Segment boundary tokens:\n", segment_boundary_tokens)
 
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
 
-    # prepare chapter/ title list
-    chapters = []
-    chapters.append(Chapter(0, " ".join(topTokens[0])))
-    for i, time in enumerate(segment_boundary_times):
-        chapters.append(Chapter(time, " ".join(topTokens[i+1])))
-
-    return chapters
+    return concat_segments
 
 def divide_chunks(l, n):
     for i in range(0, len(l), n):  
