@@ -117,7 +117,7 @@ def cosine_similarity(
 
     max_utterance_delta = floor(window_width*.4)
 
-    # concatinate wokens for each section
+    # concatinate tokens
     concat_segments = []
     for i, minimum in enumerate(minima):
         concat_segment = ''
@@ -148,7 +148,9 @@ def cosine_similarity(
     if visual:
         visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
 
-    return concat_segments, minima
+    boundary_indices = [0] + [minimum*window_width for minimum in minima]
+
+    return concat_segments, boundary_indices
 
 def divide_chunks(l, n):
     for i in range(0, len(l), n):  
