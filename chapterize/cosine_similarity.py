@@ -88,19 +88,15 @@ def cosine_similarity(
 
     end_times.pop()
 
-    # vectorize, remove of stopwords and weigh by tf-idf
-    if tfidf_min_df == 0:
-        tfidf_min_df = 1 if len(processed) < 7 else 4
-    vectorizer = TfidfVectorizer(min_df=tfidf_min_df, max_df=tfidf_max_df)
-    tfidf = vectorizer.fit_transform(processed)
-    # tfidf matrix: rows: documents, columns: words
-
+    # vectorize
+    dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
+    document_vectors = dv.vectorize_docs(processed)
 
     # calculate cosine similarity score for adjacent segments
     cosine_similarities = []
     print('\ncosine similarity scores:')
-    for i, doc_vec in enumerate(tfidf[:-1]):
-        cosine_similarity = linear_kernel(doc_vec, tfidf[i+1])[0][0]
+    for i, doc_vec in enumerate(document_vectors[:-1]):
+        cosine_similarity = linear_kernel(doc_vec, document_vectors[i+1])[0][0]
         cosine_similarities.append(cosine_similarity)
         print(cosine_similarity)
 
@@ -178,3 +174,30 @@ def visualize(cosine_similarities, cosine_similarities_raw, minima, segment_boun
     plt.xlabel('time in minutes')
     plt.show()
 
+
+class DocumentVectorizer:
+    """vectorize a list of
+    
+    Returns:
+        scipy.sparse.csr.csr_matrix: document vectors (x: documents)
+    """
+    def __init__(self, method, tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df):
+        self.method = method
+        self.tfidf_min_df = tfidf_min_df
+        self.tfidf_max_df = tfidf_max_df
+
+    def vectorize_docs(self, documents):
+        vectorizer = self.get_document_vectorizer(self.method)
+        return vectorizer(documents)
+
+    def get_document_vectorizer(self, method):
+        if method == 'tfidf':
+            return self._tfidf_vectorizer
+        else:
+            raise ValueError(method)
+
+    def _tfidf_vectorizer(self, documents):
+        if self.tfidf_min_df == 0:
+            self.tfidf_min_df = 1 if len(documents) < 7 else 4
+        vectorizer = TfidfVectorizer(min_df=self.tfidf_min_df, max_df=self.tfidf_max_df)
+        return vectorizer.fit_transform(documents)
