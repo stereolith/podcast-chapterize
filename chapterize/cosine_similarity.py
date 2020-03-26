@@ -88,9 +88,16 @@ def cosine_similarity(
 
     end_times.pop()
 
+    with open('docs', 'w') as f:
+        json.dump(processed, f)
+
     # vectorize
-    dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
-    document_vectors = dv.vectorize_docs(processed)
+    #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
+    
+    dv = DocumentVectorizer('ft_average')
+    document_vectors = dv.vectorize_docs(processed, language=language)
+
+    print(document_vectors.shape[0])
 
     # calculate cosine similarity score for adjacent segments
     cosine_similarities = []
@@ -186,18 +193,43 @@ class DocumentVectorizer:
         self.tfidf_min_df = tfidf_min_df
         self.tfidf_max_df = tfidf_max_df
 
-    def vectorize_docs(self, documents):
-        vectorizer = self.get_document_vectorizer(self.method)
-        return vectorizer(documents)
+    def vectorize_docs(self, documents, language='en'):
+        vectorizer = self.get_document_vectorizer()
+        return vectorizer(documents, language)
 
-    def get_document_vectorizer(self, method):
-        if method == 'tfidf':
+    def get_document_vectorizer(self):
+        if self.method == 'tfidf':
             return self._tfidf_vectorizer
+        elif self.method == 'ft_average':
+            return self._fasttext_average_vectorizer
         else:
             raise ValueError(method)
 
-    def _tfidf_vectorizer(self, documents):
+    def _tfidf_vectorizer(self, documents, language):
         if self.tfidf_min_df == 0:
             self.tfidf_min_df = 1 if len(documents) < 7 else 4
         vectorizer = TfidfVectorizer(min_df=self.tfidf_min_df, max_df=self.tfidf_max_df)
         return vectorizer.fit_transform(documents)
+
+    def _fasttext_average_vectorizer(self, documents, language):
+        import fasttext
+        import numpy as np
+        from scipy import sparse
+
+        # check for deployment: fasttext.util.download_model('en', if_exists='ignore')
+        if language == 'en':
+            ft = fasttext.load_model('/home/lukas/Documents/projects-divers/cc.en.300.bin')
+        elif language == 'de':
+            ft = fasttext.load_model('/home/lukas/Documents/projects-divers/cc.de.300.bin')
+        else:
+            raise ValueError(language)
+
+        document_vectors = []
+        
+        for document in documents:
+            ft_doc_vec = [ft[token] for token in document]
+            mean_vec = np.mean( np.array(ft_doc_vec), axis=0 )
+            document_vectors.append(mean_vec)
+
+        return sparse.csr.csr_matrix(document_vectors)
+
