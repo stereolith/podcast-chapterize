@@ -16,7 +16,8 @@ def main(transcript, output, audio):
 
     from transcribe.mpeg7_parser import parse_mpeg7
     from chapterize.cosine_similarity import cosine_similarity
-    from write_chapters import ChapterWriter
+    from chapterize.chapter_namer import chapter_names
+    from write_chapters import ChapterWriter, Chapter
 
     # parse mpeg7
     transcript_tokens, boundaries = parse_mpeg7(transcript)
@@ -27,8 +28,11 @@ def main(transcript, output, audio):
     window_width = min(floor(len(transcript_tokens) / 8), 200)
     print('window width: ', window_width)
 
-    chapters = cosine_similarity(transcript_tokens, boundaries, windowWidth=window_width, language='de', visual=False)
+    concat_chapters, boundary_indices = cosine_similarity(transcript_tokens, boundaries, window_width=window_width, language='de', visual=False)
     
+    titles = chapter_names(concat_chapters)
+
+    chapters = [Chapter(transcript_tokens[boundary].time, titles[i]) for i, boundary in enumerate(boundary_indices)]
     print('\nfound the following chapters:\n', [chapter.to_dict() for chapter in chapters])
 
     cw = ChapterWriter()
