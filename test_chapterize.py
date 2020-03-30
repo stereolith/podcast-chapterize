@@ -36,13 +36,13 @@ def preprocessed_documents():
 # @pytest.fixture
 # def segmented_trancript():
 
-# deprecated with chapterize factory refactor
-def test_cosine_similarity(transcript_json):
+def test_chapterizer(transcript_json):
     from transcribe.SpeechToTextModules.SpeechToTextModule import TranscriptToken
-    from chapterize.cosine_similarity import cosine_similarity
+    from chapterize.chapterizer import Chapterizer
     tokens = [TranscriptToken.from_dict(token) for token in transcript_json['tokens']]
 
-    concat_segments = cosine_similarity(tokens, transcript_json['boundaries'], language='en', visual=False)
+    chapterizer = Chapterizer()
+    concat_segments, minima = chapterizer.chapterize(tokens, boundaries=transcript_json['boundaries'], language='en', visual=False)
 
     assert len(concat_segments) > 1
 
@@ -53,12 +53,15 @@ def test_cosine_similarity(transcript_json):
 #     assert segmented_transcript[0] == None
 
 def test_document_vectorizer(preprocessed_documents):
-    from chapterize.cosine_similarity import DocumentVectorizer
+    from chapterize.document_vectorizer import DocumentVectorizer
+    from chapterize.chapterizer import Chapterizer
     from scipy import sparse
+
+    chapterizer = Chapterizer() # import chapterizer to access default hyperparameters
 
     methods = ['tfidf', 'ft_average']
     for method in methods:
-        dv = DocumentVectorizer(method)
+        dv = DocumentVectorizer(method, chapterizer.tfidf_min_df, chapterizer.tfidf_max_df)
         document_vectors = dv.vectorize_docs(preprocessed_documents, language='en')
 
         assert isinstance(document_vectors, sparse.csr.csr_matrix), f"method {method}: document vectors should be of type csr_matrix"
