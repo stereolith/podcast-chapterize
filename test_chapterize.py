@@ -59,10 +59,10 @@ def test_document_vectorizer(preprocessed_documents):
 
     chapterizer = Chapterizer() # import chapterizer to access default hyperparameters
 
-    methods = ['tfidf', 'ft_average']
+    methods = ['tfidf', 'ft_average', 'ft_sum']
     for method in methods:
-        dv = DocumentVectorizer(method, chapterizer.tfidf_min_df, chapterizer.tfidf_max_df)
-        document_vectors = dv.vectorize_docs(preprocessed_documents, language='en')
+        dv = DocumentVectorizer(chapterizer.tfidf_min_df, chapterizer.tfidf_max_df)
+        document_vectors = dv.vectorize_docs(method, preprocessed_documents, language='en')
 
         assert isinstance(document_vectors, sparse.csr.csr_matrix), f"method {method}: document vectors should be of type csr_matrix"
         assert document_vectors.shape[0] == len(preprocessed_documents), f"method {method}: there should be as many document vectors as input documents"

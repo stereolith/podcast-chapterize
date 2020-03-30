@@ -84,8 +84,8 @@ class Chapterizer:
         # vectorize
         #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
         
-        dv = DocumentVectorizer('ft_average', self.tfidf_min_df, self.tfidf_max_df)
-        document_vectors = dv.vectorize_docs(processed, language=language)
+        dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df)
+        document_vectors = dv.vectorize_docs('ft_average', processed, language=language)
 
         print(document_vectors.shape[0])
 
