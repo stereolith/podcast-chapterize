@@ -51,7 +51,7 @@ def create_job(feedUrl, language, episode=0):
 def start_job(jobId, keep_temp=False):
     from transcribe.parse_rss import get_audio_url
     from transcribe.SpeechToTextModules.GoogleSpeechAPI import GoogleSpeechToText
-    from chapterize.cosine_similarity import cosine_similarity
+    from chapterize.chapterizer import Chapterizer
     from chapterize.chapter_namer import chapter_names
     from write_chapters import ChapterWriter, Chapter
 
@@ -93,7 +93,8 @@ def start_job(jobId, keep_temp=False):
 
     save_job(job)
 
-    concat_segments, minima = cosine_similarity(tokens, boundaries, language=job['language'], visual=False)
+    chapterizer = Chapterizer() # init chapterizer with default params
+    concat_segments, minima = chapterizer.chapterize(tokens, boundaries, language=job['language'], visual=False)
 
     chapter_titles = chapter_names(concat_chapters)
 
@@ -222,7 +223,7 @@ def transcribe_action(args):
 
 def chapterize_action(args):
     from transcribe.SpeechToTextModules.SpeechToTextModule import TranscriptToken
-    from chapterize.cosine_similarity import cosine_similarity
+    from chapterize.chapterizer import Chapterize
     from chapterize.chapter_namer import chapter_names
 
     with open(args.transcript, 'r') as f:
@@ -231,10 +232,7 @@ def chapterize_action(args):
     tokens = [TranscriptToken(token['token'], token['time']) for token in transcript['tokens']]
     boundaries = transcript['boundaries']
 
-    concat_chapters, minima = cosine_similarity(
-        tokens,
-        boundaries,
-        language=args.language,
+    chapterizer = Chapterizer(
         window_width=args.window_width,
         max_utterance_delta=args.max_utterance_delta,
         tfidf_min_df=args.tfidf_min_df,
@@ -243,6 +241,7 @@ def chapterize_action(args):
         savgol_polyorder=args.savgol_polyorder,
         visual=args.v
     )
+    concat_chapters, minima = chapterizer.chapterize(tokens, boundaries, language=args.language)
     print([f"{tokens[minimum].time}" for minimum in minima])
 
     titles = chapter_names(concat_chapters)
@@ -273,18 +272,19 @@ if __name__ == '__main__':
     transcribe_parser.set_defaults(func=transcribe_action)
 
     # chapterize parser
-    from chapterize.cosine_similarity import default_params
+    from chapterize.chapterizer import Chapterizer
+    chapterizer = Chapterizer()
     chapterize_parser = subparsers.add_parser('chapterize', help='create chapters from an audio transcript')
     chapterize_parser.add_argument('transcript', type=str, help='transcript json file incl. tokens and boundaries')
     chapterize_parser.add_argument('-l', '--language', type=str, required=True, choices=['en', 'de'], help='Language of podcast episode')
     chapterize_parser.add_argument('-v', action='store_true', help='show graph')
     chapterize_parser.add_argument('-title-tokens', type=int, default=6, help='number of tokens to generate for each chapter title')
-    chapterize_parser.add_argument('-window-width', type=int, default=default_params.window_width, help='window width for inital segmentation')
-    chapterize_parser.add_argument('-max-utterance-delta', type=int, default=default_params.max_utterance_delta, help='maximum delta of tokens when refining detected boundaries by choosing nearby utterance boundaries')
-    chapterize_parser.add_argument('-tfidf-min-df', type=int, default=default_params.tfidf_min_df, help='tfidf min_df value')
-    chapterize_parser.add_argument('-tfidf-max-df', type=int, default=default_params.tfidf_max_df, help='tfidf max_df value')
-    chapterize_parser.add_argument('-savgol-window-length', type=int, default=default_params.savgol_window_length, help='window_length value for savgol smoothing')
-    chapterize_parser.add_argument('-savgol-polyorder', type=int, default=default_params.savgol_polyorder, help='polyorder value for savgol smoothing')
+    chapterize_parser.add_argument('-window-width', type=int, default=chapterizer.window_width, help='window width for inital segmentation')
+    chapterize_parser.add_argument('-max-utterance-delta', type=int, default=chapterizer.max_utterance_delta, help='maximum delta of tokens when refining detected boundaries by choosing nearby utterance boundaries')
+    chapterize_parser.add_argument('-tfidf-min-df', type=int, default=chapterizer.tfidf_min_df, help='tfidf min_df value')
+    chapterize_parser.add_argument('-tfidf-max-df', type=int, default=chapterizer.tfidf_max_df, help='tfidf max_df value')
+    chapterize_parser.add_argument('-savgol-window-length', type=int, default=chapterizer.savgol_window_length, help='window_length value for savgol smoothing')
+    chapterize_parser.add_argument('-savgol-polyorder', type=int, default=chapterizer.savgol_polyorder, help='polyorder value for savgol smoothing')
     chapterize_parser.set_defaults(func=chapterize_action)
 
     args = parser.parse_args()

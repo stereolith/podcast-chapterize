@@ -12,3 +12,4 @@ web/client/.env
 venv/
 ka3-venv
 __pycache__
+cc.*
