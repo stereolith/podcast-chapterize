@@ -21,6 +21,16 @@ def audio_tmp_path(tmp_path):
     shutil.copyfile(audio_file_path, path)
     return path
 
+def test_mate_tools(tmp_path):
+    from subprocess import call
+
+    out_path = tmp_path.joinpath('out_conll_09')
+    call(f"java -Xmx2G -classpath chapterize/mate_tools/transition-1.30.jar is2.lemmatizer2.Lemmatizer -model chapterize/mate_tools/models/lemma-ger-3.6.model -test test_files/conll_09 -out {out_path} -uc", shell=True)
+    with open(out_path, 'rb') as f:
+        print(f)
+        out = f.read().decode()
+
+    assert len(out) > 10
 
 # integration test: ka3 cli
 def test_ka3_cli_transcript(mpeg7_transcript_tmp_path):
