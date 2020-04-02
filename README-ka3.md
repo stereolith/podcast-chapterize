@@ -6,7 +6,10 @@ CLI für dei Kapitelerstellung bei mpeg7-transkribierten Audiodaten. Optional: S
 
 - Python 3.7
 - Java (min. Java SE 6.0)
-- pip (python package manager)
+- pip3 (python package manager)
+- git
+- build-essential (g++ and make)
+- python3-dev
 
 ## Install
 
