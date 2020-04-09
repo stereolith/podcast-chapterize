@@ -72,14 +72,18 @@ class Chapterizer:
 
         chunks = list(divide_chunks(tokens, self.window_width))
         for chunk in chunks:       
-            processed_section = ''
+            processed_section = []
             for token in chunk:
-                processed_section += ' ' + token.token
+                processed_section.append(token.token)
                 last_end_time = token.time
             processed.append(processed_section)
             end_times.append(last_end_time)
 
         end_times.pop()
+
+        with open('prepro.json', 'w') as f:
+            json.dump(processed,f)
+
 
         # vectorize
         #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)

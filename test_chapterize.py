@@ -6,7 +6,7 @@ import json
 # test files: english episode, from Accidental Tech Podcast
 transcript_test_file_path = "test_files/atp367.mp3_transcript.json" # atp 367
 transcript_segmented_file_path = "test_files/atp367_chapters.json" # atp 367
-preprocessed_documents_path = "test_files/preprocessed_docs.json" # atp 368
+preprocessed_documents_path = "test_files/preprocessed_tokenized.json" # atp 368
 
 # test data fixtures
 @pytest.fixture
@@ -59,7 +59,7 @@ def test_document_vectorizer(preprocessed_documents):
 
     chapterizer = Chapterizer() # import chapterizer to access default hyperparameters
 
-    methods = ['tfidf', 'ft_average', 'ft_sum']
+    methods = ['ft_sif_average','tfidf', 'ft_average', 'ft_sum']
     for method in methods:
         dv = DocumentVectorizer(chapterizer.tfidf_min_df, chapterizer.tfidf_max_df)
         document_vectors = dv.vectorize_docs(method, preprocessed_documents, language='en')

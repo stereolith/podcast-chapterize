@@ -223,7 +223,7 @@ def transcribe_action(args):
 
 def chapterize_action(args):
     from transcribe.SpeechToTextModules.SpeechToTextModule import TranscriptToken
-    from chapterize.chapterizer import Chapterize
+    from chapterize.chapterizer import Chapterizer
     from chapterize.chapter_namer import chapter_names
 
     with open(args.transcript, 'r') as f:
@@ -239,7 +239,6 @@ def chapterize_action(args):
         tfidf_max_df=args.tfidf_max_df,
         savgol_window_length=args.savgol_window_length,
         savgol_polyorder=args.savgol_polyorder,
-        visual=args.v
     )
     concat_chapters, minima = chapterizer.chapterize(tokens, boundaries, language=args.language)
     print([f"{tokens[minimum].time}" for minimum in minima])

@@ -26,11 +26,15 @@ class DocumentVectorizer:
             return self._fasttext_average_vectorizer
         elif method == 'ft_sum':
             return self._fasttext_sum_vectorizer
+        elif method == 'ft_sif_average':
+            return self._fasttext_sif_weighted_average_vectorizer
         else:
             raise ValueError(method)
 
     def _tfidf_vectorizer(self, documents, language):
         from sklearn.feature_extraction.text import TfidfVectorizer
+
+        documents = [" ".join(doc) for doc in documents]
 
         if self.tfidf_min_df == 0:
             self.tfidf_min_df = 1 if len(documents) < 7 else 4
@@ -49,6 +53,30 @@ class DocumentVectorizer:
             average_document_vectors.append(mean_vec)
 
         return sparse.csr.csr_matrix(average_document_vectors)
+
+    def _fasttext_sif_weighted_average_vectorizer(self, documents, language):
+        from collections import Counter
+        import itertools
+        import numpy as np
+        from scipy import sparse
+
+        # sif weights
+        concat_documents = itertools.chain.from_iterable(([document for document in documents]))
+        word_counts = Counter(concat_documents)
+        a = 1e-4
+        sif_weights = {word: a/(a+word_counts[word]) for word in word_counts}
+        
+        # FastText vectors
+        ft_doc_vectors = fasttext_vectors(documents, language)
+        
+        average_document_vectors = []
+        for i, word_vectors in enumerate(ft_doc_vectors):
+            weightes_ft_vectors = [ft_vec * sif_weights[documents[i][j]] for j, ft_vec in enumerate(word_vectors)]
+            mean_vec = np.mean( np.array(weightes_ft_vectors), axis=0 )
+            average_document_vectors.append(mean_vec)
+
+        return sparse.csr.csr_matrix(average_document_vectors)  
+
 
     def _fasttext_sum_vectorizer(self, documents, language):
         import numpy as np
@@ -84,4 +112,3 @@ def fasttext_vectors(documents, language):
         document_vectors.append(ft_doc_vec)
 
     return document_vectors
-
