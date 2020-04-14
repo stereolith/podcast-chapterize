@@ -9,6 +9,7 @@ class Chapterizer:
         tfidf_max_df=0.59,
         savgol_window_length=0,
         savgol_polyorder=5,
+        doc_vectorizer='ft_average'
     ):
         """init Chapterizer with hyperparameters
         
@@ -26,6 +27,7 @@ class Chapterizer:
         self.tfidf_max_df = tfidf_max_df
         self.savgol_window_length = savgol_window_length
         self.savgol_polyorder = savgol_polyorder
+        self.doc_vectorizer = doc_vectorizer
 
     def chapterize(
         self,
@@ -81,15 +83,11 @@ class Chapterizer:
 
         end_times.pop()
 
-        with open('prepro.json', 'w') as f:
-            json.dump(processed,f)
-
-
         # vectorize
         #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
         
         dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df)
-        document_vectors = dv.vectorize_docs('ft_average', processed, language=language)
+        document_vectors = dv.vectorize_docs(self.doc_vectorizer, processed, language=language)
 
         print(document_vectors.shape[0])
 
