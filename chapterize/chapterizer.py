@@ -114,14 +114,15 @@ class Chapterizer:
 
         # concatinate tokens
         concat_segments = []
+        processed_joined = [" ".join(section) for section in processed]
         for i, minimum in enumerate(minima):
             concat_segment = ''
             if i == 0:
-                concat_segment += " ".join(processed[0: minimum + 1])
+                concat_segment += " ".join(processed_joined[0: minimum + 1])
             else:
-                concat_segment += " ".join(processed[minima[i-1] + 1 : minimum + 1])
+                concat_segment += " ".join(processed_joined[minima[i-1] + 1 : minimum + 1])
             concat_segments.append(concat_segment)
-        concat_segments.append(" ".join(processed[minima[-1] + 1:])) # append last section (from last boundary to end)
+        concat_segments.append(" ".join(processed_joined[minima[-1] + 1:])) # append last section (from last boundary to end)
         
         #find closest utterance boundary for each local minima
         segment_boundary_tokens = []
