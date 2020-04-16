@@ -32,6 +32,8 @@ class Chapterizer:
     def chapterize(
         self,
         tokens,
+        ft_en,
+        ft_de,
         boundaries=[],
         language='en',
         visual=False
@@ -86,7 +88,7 @@ class Chapterizer:
         # vectorize
         #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
         
-        dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df)
+        dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df, ft_en, ft_de)
         document_vectors = dv.vectorize_docs(self.doc_vectorizer, processed, language=language)
 
         print(document_vectors.shape[0])
@@ -117,6 +119,7 @@ class Chapterizer:
         for i, minimum in enumerate(minima):
             concat_segment = ''
             if i == 0:
+                print(f'concat processed from 0 to {minimum+1} ({processed[0: minimum + 1]})')
                 concat_segment += " ".join(processed[0: minimum + 1])
             else:
                 concat_segment += " ".join(processed[minima[i-1] + 1 : minimum + 1])

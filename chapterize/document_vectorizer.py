@@ -5,7 +5,7 @@ class DocumentVectorizer:
         scipy.sparse.csr.csr_matrix: document vectors (x: documents)
     """
 
-    def __init__(self, tfidf_min_df, tfidf_max_df):
+    def __init__(self, tfidf_min_df, tfidf_max_df, ft_en, ft_de):
         """initialize a DocumentVectorizer with hyperparameters
         
         Args:
@@ -14,6 +14,8 @@ class DocumentVectorizer:
         """        
         self.tfidf_min_df = tfidf_min_df
         self.tfidf_max_df = tfidf_max_df
+        self.ft_en = ft_en
+        self.ft_de = ft_de
 
     def vectorize_docs(self, method, documents, language='en'):
         vectorizer = self.get_document_vectorizer(method)
@@ -45,7 +47,7 @@ class DocumentVectorizer:
         import numpy as np
         from scipy import sparse
         
-        ft_doc_vectors = fasttext_vectors(documents, language)
+        ft_doc_vectors = fasttext_vectors(documents, language, self.ft_en, self.ft_de)
         
         average_document_vectors = []
         for word_vectors in ft_doc_vectors:
@@ -67,7 +69,7 @@ class DocumentVectorizer:
         sif_weights = {word: a/(a+word_counts[word]) for word in word_counts}
         
         # FastText vectors
-        ft_doc_vectors = fasttext_vectors(documents, language)
+        ft_doc_vectors = fasttext_vectors(documents, language, self.ft_en, self.ft_de)
         
         average_document_vectors = []
         for i, word_vectors in enumerate(ft_doc_vectors):
@@ -82,7 +84,7 @@ class DocumentVectorizer:
         import numpy as np
         from scipy import sparse
         
-        ft_doc_vectors = fasttext_vectors(documents, language)
+        ft_doc_vectors = fasttext_vectors(documents, language, self.ft_en, self.ft_de)
         
         average_document_vectors = []
         for word_vectors in ft_doc_vectors:
@@ -91,17 +93,16 @@ class DocumentVectorizer:
 
         return sparse.csr.csr_matrix(average_document_vectors)
 
-def fasttext_vectors(documents, language):
+def fasttext_vectors(documents, language, ft_en, ft_de):
     import fasttext
     import fasttext.util
 
     # check for deployment: 
+        # check for deployment: 
     if language == 'en':
-        model_path = fasttext.util.download_model('en', if_exists='ignore')
-        ft = fasttext.load_model(model_path)
+        ft = ft_en
     elif language == 'de':
-        model_path = fasttext.util.download_model('de', if_exists='ignore')
-        ft = fasttext.load_model(model_path)
+        ft = ft_de
     else:
         raise ValueError(language)
 
