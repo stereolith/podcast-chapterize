@@ -124,27 +124,30 @@ class Chapterizer:
             concat_segments.append(concat_segment)
         concat_segments.append(" ".join(processed_joined[minima[-1] + 1:])) # append last section (from last boundary to end)
         
-        #find closest utterance boundary for each local minima
-        segment_boundary_tokens = []
-        segment_boundary_times = []
-        for minimum in minima:
-            closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*self.window_width)))
-            print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*self.window_width, closest))
+        boundary_indices = [minimum*self.window_width for minimum in minima]
 
-            if abs((minimum+1)*self.window_width - closest) <= self.max_utterance_delta:
-                segment_boundary_tokens.append(tokens[closest].token)
-                segment_boundary_times.append(tokens[closest].time)
-            else:
-                print('  closest utterance boundary is too far from minimum boundary (max_utterance_delta exceeded), topic boundary set to {}'.format(tokens[minimum*self.window_width].token))
-                segment_boundary_tokens.append(tokens[(minimum+1)*self.window_width].token)
-                segment_boundary_times.append(tokens[(minimum+1)*self.window_width].time)
+        # refine found segment boundaries by finding closest boundaries from 'boundaries' argument
+        print(f'boundary indices\n{boundary_indices}\n')
+        if boundaries != []:
+            segment_boundary_times = []
+            refined_boundary_indices = boundary_indices
+            for i, minimum in enumerate(minima):
+                closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*self.window_width)))
+                print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*self.window_width, closest))
 
-        # print("Segment boundary tokens:\n", segment_boundary_tokens)
+                if abs((minimum+1)*self.window_width - closest) <= self.max_utterance_delta:
+                    refined_boundary_indices[i] = closest
+                    segment_boundary_times.append(tokens[closest].time)
+                else:
+                    print('  closest utterance boundary is too far from minimum boundary (max_utterance_delta exceeded), topic boundary set to {}'.format(tokens[minimum*self.window_width].token))
+                    segment_boundary_times.append(tokens[(minimum+1)*self.window_width].time)
+            print(f'\nrefined boundary indices\n{refined_boundary_indices}')
+            boundary_indices = refined_boundary_indices
 
         if visual:
             visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
-
-        boundary_indices = [0] + [minimum*self.window_width for minimum in minima]
+        
+        boundary_indices = [0] + boundary_indices
 
         return concat_segments, boundary_indices
 

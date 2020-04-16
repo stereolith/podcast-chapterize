@@ -46,6 +46,15 @@ def test_chapterizer(transcript_json):
 
     assert len(concat_segments) > 1
 
+def test_chapterizer_no_boundaries(transcript_json):
+    from transcribe.SpeechToTextModules.SpeechToTextModule import TranscriptToken
+    from chapterize.chapterizer import Chapterizer
+    tokens = [TranscriptToken.from_dict(token) for token in transcript_json['tokens']]
+
+    chapterizer = Chapterizer()
+    concat_segments, minima = chapterizer.chapterize(tokens, boundaries=[], language='en', visual=False)
+
+    assert len(concat_segments) > 1
 
 # def test_chapter_namer(segmented_transcript):
 
