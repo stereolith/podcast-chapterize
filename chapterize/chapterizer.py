@@ -36,6 +36,7 @@ class Chapterizer:
         ft_de,
         boundaries=[],
         language='en',
+        skip_lemmatization=False,
         visual=False
         ):
         """segment a document into coherent parts, using a TextTiling-inspired method
@@ -70,9 +71,12 @@ class Chapterizer:
         end_times = [] # end times of every segment
 
         # batch preprocess tokens
-        chunk_tokens_lemma = lemma([token.token for token in tokens], language)
-        for i, token in enumerate(tokens):
-            token.token = chunk_tokens_lemma[i]
+        if not skip_lemmatization:
+            chunk_tokens_lemma = lemma([token.token for token in tokens], language)
+            for i, token in enumerate(tokens):
+                token.token = chunk_tokens_lemma[i]
+        else:
+            print('lemmatization skipped')
 
         chunks = list(divide_chunks(tokens, self.window_width))
         for chunk in chunks:       
