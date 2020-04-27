@@ -8,6 +8,9 @@ class TranscriptToken(object):
         # time of occurence in audio in seconds
         self.time = time
 
+        # fasttext vector to aid bulk document vectorization
+        self.fasttext = None
+
     @classmethod
     def from_dict(cls, token_dict):
         token = cls(token_dict['token'], float(token_dict['time']))
