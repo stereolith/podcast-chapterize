@@ -32,8 +32,6 @@ class Chapterizer:
     def chapterize(
         self,
         tokens,
-        ft_en,
-        ft_de,
         boundaries=[],
         language='en',
         skip_lemmatization=False,
@@ -69,6 +67,7 @@ class Chapterizer:
 
         processed = [] # segments of width window_width
         end_times = [] # end times of every segment
+        processed_ft_vectors = []
 
         # batch preprocess tokens
         if not skip_lemmatization:
@@ -78,13 +77,16 @@ class Chapterizer:
         else:
             print('lemmatization skipped')
 
+        processed_ft_section = []
         chunks = list(divide_chunks(tokens, self.window_width))
-        for chunk in chunks:       
+        for chunk in chunks:
             processed_section = []
             for token in chunk:
                 processed_section.append(token.token)
+                processed_ft_section.append(token.fasttext)
                 last_end_time = token.time
             processed.append(processed_section)
+            processed_ft_vectors.append(processed_ft_section)
             end_times.append(last_end_time)
 
         end_times.pop()
@@ -92,7 +94,7 @@ class Chapterizer:
         # vectorize
         #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
         
-        dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df, ft_en, ft_de)
+        dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df, processed_ft_vectors)
         document_vectors = dv.vectorize_docs(self.doc_vectorizer, processed, language=language)
 
         print(document_vectors.shape[0])
@@ -118,17 +120,18 @@ class Chapterizer:
 
         self.max_utterance_delta = floor(self.window_width*.4)
 
-        # concatinate tokens
-        concat_segments = []
-        processed_joined = [" ".join(section) for section in processed]
-        for i, minimum in enumerate(minima):
-            concat_segment = ''
-            if i == 0:
-                concat_segment += " ".join(processed_joined[0: minimum + 1])
-            else:
-                concat_segment += " ".join(processed_joined[minima[i-1] + 1 : minimum + 1])
-            concat_segments.append(concat_segment)
-        concat_segments.append(" ".join(processed_joined[minima[-1] + 1:])) # append last section (from last boundary to end)
+        # # concatinate tokens
+        # concat_segments = []
+        
+        # processed_joined = [" ".join(section) for section in processed]
+        # for i, minimum in enumerate(minima):
+        #     concat_segment = ''
+        #     if i == 0:
+        #         concat_segment += " ".join(processed_joined[0: minimum + 1])
+        #     else:
+        #         concat_segment += " ".join(processed_joined[minima[i-1] + 1 : minimum + 1])
+        #     concat_segments.append(concat_segment)
+        # concat_segments.append(" ".join(processed_joined[minima[-1] + 1:])) # append last section (from last boundary to end)
         
         boundary_indices = [minimum*self.window_width for minimum in minima]
 
@@ -155,7 +158,7 @@ class Chapterizer:
         
         boundary_indices = [0] + boundary_indices
 
-        return concat_segments, boundary_indices
+        return boundary_indices
 
 def divide_chunks(l, n):
     for i in range(0, len(l), n):  
