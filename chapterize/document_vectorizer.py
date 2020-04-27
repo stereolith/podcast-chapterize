@@ -5,7 +5,7 @@ class DocumentVectorizer:
         scipy.sparse.csr.csr_matrix: document vectors (x: documents)
     """
 
-    def __init__(self, tfidf_min_df, tfidf_max_df, ft_en, ft_de):
+    def __init__(self, tfidf_min_df, tfidf_max_df, processed_ft_vectors):
         """initialize a DocumentVectorizer with hyperparameters
         
         Args:
@@ -14,8 +14,7 @@ class DocumentVectorizer:
         """        
         self.tfidf_min_df = tfidf_min_df
         self.tfidf_max_df = tfidf_max_df
-        self.ft_en = ft_en
-        self.ft_de = ft_de
+        self.processed_ft_vectors = processed_ft_vectors
 
     def vectorize_docs(self, method, documents, language='en'):
         vectorizer = self.get_document_vectorizer(method)
@@ -47,7 +46,7 @@ class DocumentVectorizer:
         import numpy as np
         from scipy import sparse
         
-        ft_doc_vectors = fasttext_vectors(documents, language, self.ft_en, self.ft_de)
+        ft_doc_vectors = fasttext_vectors(documents, language, self.processed_ft_vectors)
         
         average_document_vectors = []
         for word_vectors in ft_doc_vectors:
@@ -69,7 +68,7 @@ class DocumentVectorizer:
         sif_weights = {word: a/(a+word_counts[word]) for word in word_counts}
         
         # FastText vectors
-        ft_doc_vectors = fasttext_vectors(documents, language, self.ft_en, self.ft_de)
+        ft_doc_vectors = fasttext_vectors(documents, language, self.processed_ft_vectors)
         
         average_document_vectors = []
         for i, word_vectors in enumerate(ft_doc_vectors):
@@ -84,7 +83,7 @@ class DocumentVectorizer:
         import numpy as np
         from scipy import sparse
         
-        ft_doc_vectors = fasttext_vectors(documents, language, self.ft_en, self.ft_de)
+        ft_doc_vectors = fasttext_vectors(documents, language, self.processed_ft_vectors)
         
         average_document_vectors = []
         for word_vectors in ft_doc_vectors:
@@ -93,23 +92,11 @@ class DocumentVectorizer:
 
         return sparse.csr.csr_matrix(average_document_vectors)
 
-def fasttext_vectors(documents, language, ft_en, ft_de):
-    import fasttext
-    import fasttext.util
-
-    # check for deployment: 
-        # check for deployment: 
-    if language == 'en':
-        ft = ft_en
-    elif language == 'de':
-        ft = ft_de
-    else:
-        raise ValueError(language)
-
+def fasttext_vectors(documents, language, processed_ft_vectors):
     document_vectors = []
     
-    for document in documents:
-        ft_doc_vec = [ft[token] for token in document]
+    for doc_i, document in enumerate(documents):
+        ft_doc_vec = [processed_ft_vectors[doc_i][token_i] for token_i, token in enumerate(document)]
         document_vectors.append(ft_doc_vec)
 
     return document_vectors
