@@ -41,18 +41,6 @@ class DocumentVectorizer:
         vectorizer = TfidfVectorizer(min_df=self.tfidf_min_df, max_df=self.tfidf_max_df)
         return vectorizer.fit_transform(documents)
 
-    def _fasttext_average_vectorizer(self, documents, language):
-        import numpy as np
-        from scipy import sparse
-        
-        ft_doc_vectors = fasttext_vectors(documents, language)
-        
-        average_document_vectors = []
-        for word_vectors in ft_doc_vectors:
-            mean_vec = np.mean( np.array(word_vectors), axis=0 )
-            average_document_vectors.append(mean_vec)
-
-        return sparse.csr.csr_matrix(average_document_vectors)
 
     def _fasttext_sif_weighted_average_vectorizer(self, documents, language):
         from collections import Counter
@@ -77,6 +65,18 @@ class DocumentVectorizer:
 
         return sparse.csr.csr_matrix(average_document_vectors)  
 
+    def _fasttext_average_vectorizer(self, documents, language):
+        import numpy as np
+        from scipy import sparse
+        
+        ft_doc_vectors = fasttext_vectors(documents, language)
+        
+        average_document_vectors = []
+        for word_vectors in ft_doc_vectors:
+            mean_vec = np.mean( np.array(word_vectors), axis=0 )
+            average_document_vectors.append(mean_vec)
+
+        return sparse.csr.csr_matrix(average_document_vectors)
 
     def _fasttext_sum_vectorizer(self, documents, language):
         import numpy as np

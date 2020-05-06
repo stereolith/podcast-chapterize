@@ -3,13 +3,13 @@ class Chapterizer:
     """
     def __init__(
         self,
-        window_width=200,
-        max_utterance_delta=90,
+        window_width=50,
+        max_utterance_delta=30,
         tfidf_min_df=0,
         tfidf_max_df=0.59,
-        savgol_window_length=0,
-        savgol_polyorder=5,
-        doc_vectorizer='ft_average'
+        savgol_window_length=4,
+        savgol_polyorder=11,
+        doc_vectorizer='ft_sum'
     ):
         """init Chapterizer with hyperparameters
         
@@ -83,9 +83,7 @@ class Chapterizer:
 
         end_times.pop()
 
-        # vectorize
-        #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
-        
+        # vectorize        
         dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df)
         document_vectors = dv.vectorize_docs(self.doc_vectorizer, processed, language=language)
 
