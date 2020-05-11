@@ -48,7 +48,7 @@ def parse_duration_matrix(str):
     start_time = []
     duration = []
     for i, val in enumerate(values):
-        if i % 2 is 0:
+        if i % 2 == 0:
             start_time.append(int(val) / 1000)
         else:
             duration.append(int(val) / 1000)

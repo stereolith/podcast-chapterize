@@ -56,8 +56,8 @@ def main(transcript, output, audio):
         #         copyfileobj(src, dst)
         # else:
 
-        project_path = os.path.dirname(os.path.realpath(__file__))
-        subprocess.Popen(f'{project_path}/libs/ffmpeg/ffmpeg -y -i {audio} -c:a aac -b:a 192k {audio_target_path}', shell=True).wait()
+        ffmpeg_path = os.getenv('FFMPEG_PATH') or 'ffmpeg'
+        subprocess.Popen(f'{ffmpeg_path} -y -i {audio} -c:a aac -b:a 192k {audio_target_path}', shell=True).wait()
 
         cw.write_chapters('m4a', chapters, audio_target_path)
 
@@ -71,6 +71,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.transcript, args.output, args.audio)
-
-
-

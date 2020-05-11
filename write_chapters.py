@@ -74,7 +74,7 @@ def _write_to_txt(chapters = List[Chapter], filepath = str):
 def _write_to_m4a(chapters = List[Chapter], filepath = str):
     from datetime import datetime
     from subprocess import call
-    from os import path
+    from os import path, getenv
     import tempfile
 
     text_samples = ''
@@ -99,10 +99,9 @@ def _write_to_m4a(chapters = List[Chapter], filepath = str):
         f'</TextStream>'
     )
 
-    project_path = path.dirname(path.realpath(__file__))
+    mp4box_path = getenv('MP4BOX_PATH') or 'MP4Box'
     with tempfile.NamedTemporaryFile(mode='w', suffix='.ttxt') as tf:
         tf.write(ttxt_template)
         tf.flush()
-        call(f'{project_path}/libs/MP4Box/MP4Box -chap {tf.name} {filepath}', shell=True)
+        call(f'{mp4box_path} -chap {tf.name} {filepath}', shell=True)
         
-

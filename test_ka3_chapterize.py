@@ -67,7 +67,8 @@ def test_ka3_cli_transcript_audio(mpeg7_transcript_tmp_path, audio_tmp_path):
     assert check_for_chapters_in_audio(output_audio_file_path)
 
 def check_for_chapters_in_audio(audio_path):
-    result = subprocess.run(['libs/ffmpeg/ffmpeg', '-i', audio_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    ffmpeg_path = os.getenv('FFMPEG_PATH') or 'ffmpeg'
+    result = subprocess.run([ffmpeg_path, '-i', audio_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stderr = result.stderr.decode('utf-8')
 
     print(stderr)
