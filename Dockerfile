@@ -31,6 +31,8 @@ RUN apk del build-base libxml2 zlib-dev
 # download fasttext model
 RUN python3 -c "import fasttext.util; fasttext.util.download_model('de')"
 
+RUN mkdir input && output
+
 # pytest:
 #CMD ["pytest", "-s", "test_ka3_chapterize.py"]
 
