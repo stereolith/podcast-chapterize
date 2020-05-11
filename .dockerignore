@@ -11,7 +11,7 @@ web/client/.env
 venv/
 ka3-venv
 __pycache__
-cc.*
+cc.en*
 .git
 .cache
 .pytest_cache

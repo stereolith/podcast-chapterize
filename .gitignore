@@ -13,3 +13,4 @@ venv/
 ka3-venv
 __pycache__
 cc.*
+.pytest_cache
