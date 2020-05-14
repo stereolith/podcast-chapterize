@@ -21,6 +21,11 @@ def audio_tmp_path(tmp_path):
     shutil.copyfile(audio_file_path, path)
     return path
 
+def test_mpeg7_parser(mpeg7_transcript_tmp_path):
+    from transcribe.mpeg7_parser import parse_mpeg7
+    tokens, boundaries = parse_mpeg7(mpeg7_transcript_tmp_path)
+    assert len(tokens) == 6335 and len(boundaries) == 110
+
 def test_mate_tools(tmp_path):
     from subprocess import call
 

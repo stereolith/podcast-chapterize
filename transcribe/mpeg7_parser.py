@@ -18,6 +18,17 @@ def parse_mpeg7(filepath):
     transcription_tokens = []
     boundaries = []
 
+    # find namespaces for ifinder and mpeg7
+    root_el = transcript.contents[0]
+    mpeg7_namespace = 'mpeg7'
+    ifinder_namespace = 'ifinder'
+
+    for attr_key in root_el.attrs:
+        if 'urn:mpeg:mpeg7:schema:2004' in root_el.attrs[attr_key]:
+            mpeg7_namespace = attr_key[attr_key.find(':') + 1:]
+        if 'http://www.iais.fraunhofer.de/ifinder' in root_el.attrs[attr_key]:
+            ifinder_namespace = attr_key[attr_key.find(':') + 1:]
+
     # find all mpeg7:audioSegment elements
     for audio_segment in transcript.find('mpeg7:TemporalDecomposition').find_all('mpeg7:AudioSegment'):
         # filter out audioSegments without spoken word content
