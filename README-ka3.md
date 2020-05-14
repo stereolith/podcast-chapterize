@@ -19,10 +19,11 @@ __If using Docker Desktop:__ By Default, Docker Desktop allocates only 2GB of RA
 
 ### Usage
 
-    ./run_ka3_chapterize_docker.sh [-a AUDIO] transcript
+    ./run_ka3_chapterize_docker.sh [-a AUDIO] transcript output
 
 - `-a AUDIO` path to audio file to add chapter markers to (any codec/ format that ffmpeg can process is permitted)
 - `transcript` path to mpeg7 transcript file
+- `output`  path to save output file(s) to
 
 ## Mamual Install
 
