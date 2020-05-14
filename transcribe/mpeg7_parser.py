@@ -30,15 +30,15 @@ def parse_mpeg7(filepath):
             ifinder_namespace = attr_key[attr_key.find(':') + 1:]
 
     # find all mpeg7:audioSegment elements
-    for audio_segment in transcript.find('mpeg7:TemporalDecomposition').find_all('mpeg7:AudioSegment'):
+    for audio_segment in transcript.find(f'{mpeg7_namespace}:TemporalDecomposition').find_all(f'{mpeg7_namespace}:AudioSegment'):
         # filter out audioSegments without spoken word content
-        descriptor = audio_segment.find('mpeg7:AudioDescriptor', attrs={'xsi:type': 'ifinder:SpokenContentType'}, recursive=False)
+        descriptor = audio_segment.find(f'{mpeg7_namespace}:AudioDescriptor', attrs={'xsi:type': f'{ifinder_namespace}:SpokenContentType'}, recursive=False)
         if descriptor:
-            transcription = audio_segment.find('ifinder:Transcription')
+            transcription = audio_segment.find(f'{ifinder_namespace}:Transcription')
             if transcription:
-                start_times, duration = parse_duration_matrix(transcription.find('ifinder:StartTimeDurationMatrix').string)
+                start_times, duration = parse_duration_matrix(transcription.find(f'{ifinder_namespace}:StartTimeDurationMatrix').string)
 
-                tokens = parse_spoken_unit_vector(transcription.find('ifinder:SpokenUnitVector').string)
+                tokens = parse_spoken_unit_vector(transcription.find(f'{ifinder_namespace}:SpokenUnitVector').string)
                 if len(start_times) != len(tokens):
                     print('could not match StartTimeDurationMatrix with SpokenUnitVector')
                     return
