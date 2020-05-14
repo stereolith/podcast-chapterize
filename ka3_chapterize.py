@@ -57,7 +57,7 @@ def main(transcript, output, audio):
         # else:
 
         ffmpeg_path = os.getenv('FFMPEG_PATH') or 'ffmpeg'
-        subprocess.Popen(f'{ffmpeg_path} -y -i "{audio}" -c:a aac -b:a 192k "{audio_target_path}"', shell=True).wait()
+        subprocess.Popen(f'{ffmpeg_path} -y -i "{audio}" -c:a aac -b:a 160k "{audio_target_path}"', shell=True).wait()
 
         cw.write_chapters('m4a', chapters, audio_target_path)
 

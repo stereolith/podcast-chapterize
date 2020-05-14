@@ -103,5 +103,5 @@ def _write_to_m4a(chapters = List[Chapter], filepath = str):
     with tempfile.NamedTemporaryFile(mode='w', suffix='.ttxt') as tf:
         tf.write(ttxt_template)
         tf.flush()
-        call(f'{mp4box_path} -chap {tf.name} {filepath}', shell=True)
+        call(f'{mp4box_path} -chap "{tf.name}" "{filepath}"', shell=True)
         
