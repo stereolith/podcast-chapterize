@@ -14,7 +14,7 @@ __If using Docker Desktop:__ By Default, Docker Desktop allocates only 2GB of RA
 
 ### Install (Linux and OSX)
 
-1. Download bash script file [run_ka3_chapterize_docker.sh](run_ka3_chapterize_docker.sh): `curl https://raw.githubusercontent.com/stereolith/podcast-chapterize/ka3-cli/run_ka3_chapterize_docker.sh`
+1. Download bash script file [run_ka3_chapterize_docker.sh](run_ka3_chapterize_docker.sh): `curl https://raw.githubusercontent.com/stereolith/podcast-chapterize/ka3-cli/run_ka3_chapterize_docker.sh --output run_ka3_chapterize_docker.sh`
 2. Make file executable: `chmod +x run_ka3_chapterize_docker.sh`
 
 ### Usage
