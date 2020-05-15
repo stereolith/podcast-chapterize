@@ -4,26 +4,33 @@ This project aims to automatically provide longform audio podcast episodes with 
 
 [work in progress]
 
-### Requirements
+## Requirements
+### CLI:
 * Python 3.6+
 * ffmpeg
 * [MP4Box](https://gpac.wp.imt.fr/2015/07/29/gpac-build-mp4box-only-all-platforms/)
 * matplotlib ([intall via package manager](https://matplotlib.org/3.1.1/users/installing.html#linux-using-your-package-manager))
-* Python module requirements (installable via requirements.txt)
+* Java
+* Python module requirements (installable via `pip3 install -r requirements.txt`)
+
+### Web interface:
 * node.js
 * npm
 
-### Running the project
-This program can be used in the command line or as an API with a web interface.
+## Usage
+This program can be used in the command line or as an HTTP API with a web interface.
 
-#### CLI
-* Run main script 'main.py': `python3 main.py`
-	* `python3 main.py -h` for help
-	* first argument: URL to chapterize
-	* second argument: language ('en' for English, 'de' for German)
-	* optional argument '-e' or '--episode' to specify episode number, where 0 is lastest and 1 is penultimate etc.
+### CLI
+Usage: `python3 main.py [subcommand] [options] ...`
 
-#### Web interface
+* Help: `python3 main.py --help`
+* Subcommand help: `python3 main.py [subcommand] --help`
+* Possible subcommands:
+    * `python3 main.py run`: Start chapterization process from podcast RSS feed URL
+    * `python3 main.py transcribe`: Transcribe podcast episode from RSS feed URL
+    * `python3 main.py chapterize`: Chapterize transcript
+
+### Web interface
 
 _API_:
 

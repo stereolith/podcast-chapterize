@@ -3,12 +3,13 @@ class Chapterizer:
     """
     def __init__(
         self,
-        window_width=200,
-        max_utterance_delta=90,
+        window_width=50,
+        max_utterance_delta=30,
         tfidf_min_df=0,
         tfidf_max_df=0.59,
-        savgol_window_length=0,
-        savgol_polyorder=5,
+        savgol_window_length=4,
+        savgol_polyorder=11,
+        doc_vectorizer='ft_sum'
     ):
         """init Chapterizer with hyperparameters
         
@@ -26,6 +27,7 @@ class Chapterizer:
         self.tfidf_max_df = tfidf_max_df
         self.savgol_window_length = savgol_window_length
         self.savgol_polyorder = savgol_polyorder
+        self.doc_vectorizer = doc_vectorizer
 
     def chapterize(
         self,
@@ -72,20 +74,18 @@ class Chapterizer:
 
         chunks = list(divide_chunks(tokens, self.window_width))
         for chunk in chunks:       
-            processed_section = ''
+            processed_section = []
             for token in chunk:
-                processed_section += ' ' + token.token
+                processed_section.append(token.token)
                 last_end_time = token.time
             processed.append(processed_section)
             end_times.append(last_end_time)
 
         end_times.pop()
 
-        # vectorize
-        #dv = DocumentVectorizer('tfidf', tfidf_min_df=default_params.tfidf_min_df, tfidf_max_df=default_params.tfidf_max_df)
-        
+        # vectorize        
         dv = DocumentVectorizer(self.tfidf_min_df, self.tfidf_max_df)
-        document_vectors = dv.vectorize_docs('ft_average', processed, language=language)
+        document_vectors = dv.vectorize_docs(self.doc_vectorizer, processed, language=language)
 
         print(document_vectors.shape[0])
 
@@ -112,36 +112,40 @@ class Chapterizer:
 
         # concatinate tokens
         concat_segments = []
+        processed_joined = [" ".join(section) for section in processed]
         for i, minimum in enumerate(minima):
             concat_segment = ''
             if i == 0:
-                concat_segment += " ".join(processed[0: minimum + 1])
+                concat_segment += " ".join(processed_joined[0: minimum + 1])
             else:
-                concat_segment += " ".join(processed[minima[i-1] + 1 : minimum + 1])
+                concat_segment += " ".join(processed_joined[minima[i-1] + 1 : minimum + 1])
             concat_segments.append(concat_segment)
-        concat_segments.append(" ".join(processed[minima[-1] + 1:])) # append last section (from last boundary to end)
+        concat_segments.append(" ".join(processed_joined[minima[-1] + 1:])) # append last section (from last boundary to end)
         
-        #find closest utterance boundary for each local minima
-        segment_boundary_tokens = []
-        segment_boundary_times = []
-        for minimum in minima:
-            closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*self.window_width)))
-            print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*self.window_width, closest))
+        boundary_indices = [minimum*self.window_width for minimum in minima]
 
-            if abs((minimum+1)*self.window_width - closest) <= self.max_utterance_delta:
-                segment_boundary_tokens.append(tokens[closest].token)
-                segment_boundary_times.append(tokens[closest].time)
-            else:
-                print('  closest utterance boundary is too far from minimum boundary (max_utterance_delta exceeded), topic boundary set to {}'.format(tokens[minimum*self.window_width].token))
-                segment_boundary_tokens.append(tokens[(minimum+1)*self.window_width].token)
-                segment_boundary_times.append(tokens[(minimum+1)*self.window_width].time)
+        # refine found segment boundaries by finding closest boundaries from 'boundaries' argument
+        print(f'boundary indices\n{boundary_indices}\n')
+        if boundaries != []:
+            segment_boundary_times = []
+            refined_boundary_indices = boundary_indices
+            for i, minimum in enumerate(minima):
+                closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*self.window_width)))
+                print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*self.window_width, closest))
 
-        # print("Segment boundary tokens:\n", segment_boundary_tokens)
+                if abs((minimum+1)*self.window_width - closest) <= self.max_utterance_delta:
+                    refined_boundary_indices[i] = closest
+                    segment_boundary_times.append(tokens[closest].time)
+                else:
+                    print('  closest utterance boundary is too far from minimum boundary (max_utterance_delta exceeded), topic boundary set to {}'.format(tokens[minimum*self.window_width].token))
+                    segment_boundary_times.append(tokens[(minimum+1)*self.window_width].time)
+            print(f'\nrefined boundary indices\n{refined_boundary_indices}')
+            boundary_indices = refined_boundary_indices
 
         if visual:
             visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
-
-        boundary_indices = [0] + [minimum*self.window_width for minimum in minima]
+        
+        boundary_indices = [0] + boundary_indices
 
         return concat_segments, boundary_indices
 
