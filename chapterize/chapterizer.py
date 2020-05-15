@@ -3,12 +3,12 @@ class Chapterizer:
     """
     def __init__(
         self,
-        window_width=50,
-        max_utterance_delta=30,
+        window_width=250,
+        max_utterance_delta=100,
         tfidf_min_df=0,
         tfidf_max_df=0.59,
-        savgol_window_length=4,
-        savgol_polyorder=11,
+        savgol_window_length=11,
+        savgol_polyorder=4,
         doc_vectorizer='ft_sum'
     ):
         """init Chapterizer with hyperparameters
@@ -155,6 +155,7 @@ def divide_chunks(l, n):
 
 def visualize(cosine_similarities, cosine_similarities_raw, minima, segment_boundary_times, end_times): 
     import matplotlib.pyplot as plt
+    import numpy as np
 
     end_times = [time / 60 for time in end_times]
 

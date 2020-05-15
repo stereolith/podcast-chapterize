@@ -24,12 +24,8 @@ def main(transcript, output, audio):
     print('no of tokens: ', len(transcript_tokens))
     print('boundaries at ', boundaries)
 
-    # calculate chapters
-    window_width = min(floor(len(transcript_tokens) / 8), 200)
-    print('window width: ', window_width)
-
-    chapterizer = Chapterizer(window_width=window_width)
-    concat_chapters, boundary_indices = chapterizer.chapterize(transcript_tokens, boundaries, language='de', visual=False)
+    chapterizer = Chapterizer()
+    concat_chapters, boundary_indices = chapterizer.chapterize(transcript_tokens, boundaries, language='de')
     
     titles = chapter_names(concat_chapters)
 
