@@ -75,3 +75,16 @@ def test_document_vectorizer(preprocessed_documents):
 
         assert isinstance(document_vectors, sparse.csr.csr_matrix), f"method {method}: document vectors should be of type csr_matrix"
         assert document_vectors.shape[0] == len(preprocessed_documents), f"method {method}: there should be as many document vectors as input documents"
+
+
+def test_boundary_refinement():
+    from chapterize.chapterizer import Chapterizer
+
+    chapterizer = Chapterizer(max_utterance_delta=3) # import chapterizer to access default hyperparameters
+
+    boundaries = [1,5,12,20,29,40,55]
+    true_boundaries = [2,3,9,13,24,27,43,60]
+
+    refined_target = [2,3,13,20,27,43,55]
+    refined_boundaries = chapterizer.refine_boundaries(boundaries, true_boundaries)
+    assert refined_boundaries == refined_target

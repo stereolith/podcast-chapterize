@@ -122,32 +122,44 @@ class Chapterizer:
             concat_segments.append(concat_segment)
         concat_segments.append(" ".join(processed_joined[minima[-1] + 1:])) # append last section (from last boundary to end)
         
-        boundary_indices = [minimum*self.window_width for minimum in minima]
+        boundary_indices = [minimum*self.window_width for minimum in minima] # indices correspond to token indices
 
-        # refine found segment boundaries by finding closest boundaries from 'boundaries' argument
-        print(f'boundary indices\n{boundary_indices}\n')
         if boundaries != []:
-            segment_boundary_times = []
-            refined_boundary_indices = boundary_indices
-            for i, minimum in enumerate(minima):
-                closest = min(boundaries, key=lambda x:abs(x-((minimum + 1)*self.window_width)))
-                print('for minimum at token {}, closest utterance boundary is at token {}'.format((minimum+1)*self.window_width, closest))
-
-                if abs((minimum+1)*self.window_width - closest) <= self.max_utterance_delta:
-                    refined_boundary_indices[i] = closest
-                    segment_boundary_times.append(tokens[closest].time)
-                else:
-                    print('  closest utterance boundary is too far from minimum boundary (max_utterance_delta exceeded), topic boundary set to {}'.format(tokens[minimum*self.window_width].token))
-                    segment_boundary_times.append(tokens[(minimum+1)*self.window_width].time)
-            print(f'\nrefined boundary indices\n{refined_boundary_indices}')
-            boundary_indices = refined_boundary_indices
+            boundary_indices = self.refine_boundaries(boundary_indices, boundaries)
 
         if visual:
+            segment_boundary_times = []
+            for i in boundary_indices:
+                segment_boundary_times.append(tokens[i].time)
             visualize(cosine_similarities_smooth, cosine_similarities, minima, segment_boundary_times, end_times)
         
         boundary_indices = [0] + boundary_indices
 
         return concat_segments, boundary_indices
+
+    def refine_boundaries(self, boundaries, true_boundaries):
+        """refine a list of boundaries by moving every boundaries to the closest true boundary,
+        if the true boundary is not farther away than the distance defined in max_delta
+
+        Args:
+            boundaries (list): list of boundaries to refine
+            true_boundaries (list): list of boundaries used for refinement
+
+        Returns:
+            list: list of refined boundaries
+        """
+
+        refined_boundary_indices = boundaries
+        for i, boundary_index in enumerate(boundaries):
+            closest = min(true_boundaries, key=lambda x:abs(x-boundary_index))
+            print('for minimum at token {}, closest utterance boundary is at token {}'.format(boundary_index, closest))
+            if abs(boundary_index - closest) <= self.max_utterance_delta:
+                refined_boundary_indices[i] = closest
+            else:
+                print('  closest utterance boundary is too far from minimum boundary (max_utterance_delta exceeded)')
+        print(f'\nrefined boundary indices\n{refined_boundary_indices}')
+
+        return refined_boundary_indices
 
 def divide_chunks(l, n):
     for i in range(0, len(l), n):  
