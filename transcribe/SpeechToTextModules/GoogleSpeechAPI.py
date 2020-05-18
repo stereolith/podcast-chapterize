@@ -82,7 +82,7 @@ class GoogleSpeechToText(SpeechToTextModule):
 def toWav(path):
     filename = os.path.splitext(os.path.basename(path))[0]
     dest = os.path.join('transcribe/download', filename) + '.wav'
-    cmd = 'ffmpeg -y -i {0} -vn -ac 1 -acodec pcm_s16le -ar 16000 {1}'.format(path, dest)
+    cmd = 'ffmpeg -y -i "{0}" -vn -ac 1 -acodec pcm_s16le -ar 16000 "{1}"'.format(path, dest)
     print('\nconvert file {0} to wav format'.format(path))
     os.system(cmd)
     return dest

@@ -122,7 +122,7 @@ def start_job(jobId, keep_temp=False):
         cw.write_chapters('m4a', chapters, processed_audio_file_path)
     else:
         mp3_file_path = os.path.splitext(processed_audio_file_path) + '.mp3'
-        subprocess.Popen(f'ffmpeg -y -i {processed_audio_file_path} {mp3_file_path}', shell=True)
+        subprocess.Popen(f'ffmpeg -y -i "{processed_audio_file_path}" "{mp3_file_path}"', shell=True)
         processed_audio_file_path = mp3_file_path
 
     
