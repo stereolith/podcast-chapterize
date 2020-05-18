@@ -7,8 +7,8 @@ class Chapterizer:
         max_utterance_delta=30,
         tfidf_min_df=0,
         tfidf_max_df=0.59,
-        savgol_window_length=4,
-        savgol_polyorder=11,
+        savgol_window_length=11,
+        savgol_polyorder=4,
         doc_vectorizer='ft_sum'
     ):
         """init Chapterizer with hyperparameters
