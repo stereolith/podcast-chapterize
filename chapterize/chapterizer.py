@@ -50,6 +50,7 @@ class Chapterizer:
 
         from chapterize.preprocessor_helper import lemma
         from chapterize.document_vectorizer import DocumentVectorizer
+        from chapterize.preprocessor_helper import remove_stopwords
         from write_chapters import Chapter
 
         import nltk
@@ -78,6 +79,7 @@ class Chapterizer:
             for token in chunk:
                 processed_section.append(token.token)
                 last_end_time = token.time
+            processed_section = remove_stopwords(processed_section)
             processed.append(processed_section)
             end_times.append(last_end_time)
 

@@ -56,11 +56,6 @@ def test_chapterizer_no_boundaries(transcript_json):
 
     assert len(concat_segments) > 1
 
-# def test_chapter_namer(segmented_transcript):
-
-#     # tokens = transcript_json['']
-#     assert segmented_transcript[0] == None
-
 def test_document_vectorizer(preprocessed_documents):
     from chapterize.document_vectorizer import DocumentVectorizer
     from chapterize.chapterizer import Chapterizer
@@ -75,3 +70,18 @@ def test_document_vectorizer(preprocessed_documents):
 
         assert isinstance(document_vectors, sparse.csr.csr_matrix), f"method {method}: document vectors should be of type csr_matrix"
         assert document_vectors.shape[0] == len(preprocessed_documents), f"method {method}: there should be as many document vectors as input documents"
+
+def test_remove_stopwords():
+    from chapterize.preprocessor_helper import remove_stopwords
+
+    test_en = ['i', 'do', 'love', 'potatoes', 'with', 'sour', 'cream']
+    target_en = ['love', 'potatoes', 'sour', 'cream']
+
+    test_de = ['ich', 'mag', 'kartoffeln', 'mit', 'quark']
+    target_de = ['mag', 'kartoffeln', 'quark']
+
+    assert remove_stopwords(test_en, 'en') == target_en
+    assert remove_stopwords(test_de, 'de') == target_de
+    
+def test_chapter_namer():
+    
