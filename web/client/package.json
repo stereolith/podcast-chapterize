@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@podlove/web-player": "^4.5.13",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "core-js": "^2.6.11",
     "css-loader": "^3.4.2",
     "dotenv": "^8.2.0",
